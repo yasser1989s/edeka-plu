@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLU Quick-Find Pro</title>
+    <title>PLU Quick-Find Pro + Voice</title>
     <style>
         :root {
             --bg-main: #f4f6f9;
@@ -15,6 +15,7 @@
             --primary-hover: #1dd1a1;
             --row-even: #f8f9fa;
             --row-hover: #c8d6e5;
+            --voice-active: #ee5253;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -37,14 +38,25 @@
         .app-container { width: 100%; max-width: 700px; background: var(--bg-card); padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
         header { text-align: center; margin-bottom: 20px; }
-        header h1 { font-size: 24px; color: var(--primary); font-weight: 800; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        header h1 { font-size: 24px; color: var(--primary); font-weight: 800; }
         header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-        .search-box { position: relative; margin-bottom: 15px; }
-        .search-input { width: 100%; padding: 16px; font-size: 16px; border: 2px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 12px; outline: none; transition: all 0.2s ease; }
+        /* تعديل صندوق البحث ليحتوي على زر الميكروفون */
+        .search-wrapper { display: flex; gap: 8px; margin-bottom: 15px; position: relative; }
+        .search-input { flex: 1; padding: 16px; font-size: 16px; border: 2px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 12px; outline: none; transition: all 0.2s ease; }
         .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(29, 209, 161, 0.2); }
 
-        /* شريط الحروف الأبجدية الفوري */
+        /* زر البحث الصوتي الاحترافي */
+        .voice-btn { width: 54px; border: none; background: var(--primary); color: white; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .voice-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .voice-btn.listening { background: var(--voice-active); animation: pulse 1.2s infinite; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(238, 82, 83, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(238, 82, 83, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(238, 82, 83, 0); }
+        }
+
         .alphabet-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; justify-content: center; padding: 5px; background: var(--bg-main); border-radius: 12px; }
         .letter-btn { padding: 8px 12px; border: none; background: var(--bg-card); color: var(--text-main); font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.1s ease; }
         .letter-btn:hover, .letter-btn.active { background: var(--primary); color: white; transform: translateY(-2px); }
@@ -54,21 +66,16 @@
         .list-wrapper { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th, td { padding: 14px 16px; font-size: 15px; border-bottom: 1px solid var(--border); }
-        th { background: var(--border); color: var(--text-main); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        th { background: var(--border); color: var(--text-main); font-weight: 700; font-size: 13px; text-transform: uppercase; }
         tr:nth-child(even) { background-color: var(--row-even); }
         tr:hover { background-color: var(--row-hover); }
 
-        /* تصميم شارة الـ PLU مع خاصية النقر للنسخ */
-        .plu-badge { background: rgba(29, 209, 161, 0.15); color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-family: monospace; font-size: 15px; cursor: pointer; display: inline-block; transition: all 0.2s ease; border: 1px solid transparent; }
+        .plu-badge { background: rgba(29, 209, 161, 0.15); color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-family: monospace; font-size: 15px; cursor: pointer; display: inline-block; transition: all 0.2s ease; }
         .plu-badge:hover { transform: scale(1.08); background: var(--primary); color: white; }
-        .plu-badge:active { transform: scale(0.95); }
 
         .no-data { text-align: center; padding: 40px; color: var(--text-muted); display: none; font-size: 15px; }
-        
-        /* إشعار النسخ المنبثق السريع */
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #2f3542; color: #f5f6fa; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999; }
         .toast.show { transform: translateX(-50%) translateY(0); }
-        
         .fallback-text { color: #ff6b6b; font-style: italic; font-size: 13px; }
     </style>
 </head>
@@ -77,11 +84,12 @@
 <div class="app-container">
     <header>
         <h1>⚡ PLU Quick-Find Pro</h1>
-        <p>Offline-Fähig • Schnellsuche • Klick zum Kopieren</p>
+        <p>Audio-Suche • Offline-Fähig • Klick zum Kopieren</p>
     </header>
 
-    <div class="search-box">
-        <input type="text" id="mainSearch" class="search-input" placeholder="Produktname oder PLU eingeben..." autocomplete="off" autofocus>
+    <div class="search-wrapper">
+        <input type="text" id="mainSearch" class="search-input" placeholder="Produktname, PLU oder Sprache..." autocomplete="off" autofocus>
+        <button id="voiceBtn" class="voice-btn" title="Sprachsuche starten">🎤</button>
     </div>
 
     <div class="alphabet-bar" id="alphabetBar">
@@ -90,7 +98,7 @@
 
     <div class="meta-info">
         <span id="resultsCount">Produkte: 0</span>
-        <span>Modus: <b>Offline OK</b> 🟢</span>
+        <span id="voiceStatus">Modus: <b>Offline OK</b> 🟢</span>
     </div>
 
     <div class="list-wrapper">
@@ -110,7 +118,7 @@
 <div class="toast" id="toastMessage">Nummer kopiert! ✓</div>
 
 <script>
-    // قائمة المنتجات المحسنة بالكامل وبدون تكرار
+    // قائمة البيانات الكاملة
     const rawProducts = [
         { name: "Ananas", plu: "30800" }, { name: "Apfel 3 kg Karton", plu: "30601" }, { name: "Apfel 5 kg Karton", plu: "30116" },
         { name: "Äpfel", plu: "30894" }, { name: "Äpfel Bio", plu: "30751" }, { name: "Äpfel gelegt", plu: "30603" },
@@ -196,7 +204,6 @@
         { name: "Zwetschgen", plu: "30695" }
     ];
 
-    // ترتيب المنتجات أبجدياً
     rawProducts.sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
     const tableData = document.getElementById('tableData');
@@ -206,15 +213,13 @@
     const mainTable = document.getElementById('mainTable');
     const alphabetBar = document.getElementById('alphabetBar');
     const toastMessage = document.getElementById('toastMessage');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const voiceStatus = document.getElementById('voiceStatus');
 
     let currentSelectedLetter = 'ALL';
 
-    // توليد شريط الحروف تلقائياً بناءً على المنتجات المتوفرة لضمان الفعالية
-    const letters = ['ALL', ...new Set(rawProducts.map(p => {
-        let firstLetter = p.name.charAt(0).toUpperCase();
-        return (firstLetter === 'Ä' || firstLetter === 'Ö' || firstLetter === 'Ü') ? firstLetter : firstLetter;
-    }))].sort((a,b) => a.localeCompare(b, 'de'));
-
+    // توليد شريط الحروف تلقائياً
+    const letters = ['ALL', ...new Set(rawProducts.map(p => p.name.charAt(0).toUpperCase()))].sort((a,b) => a.localeCompare(b, 'de'));
     alphabetBar.innerHTML = '';
     letters.forEach(let => {
         const btn = document.createElement('button');
@@ -224,7 +229,6 @@
         alphabetBar.appendChild(btn);
     });
 
-    // دالة بناء وعرض الجدول
     function updateInterface(items) {
         tableData.innerHTML = '';
         resultsCount.textContent = `Produkte: ${items.length}`;
@@ -234,16 +238,13 @@
             noDataView.style.display = 'block';
             return;
         }
-
         mainTable.style.display = 'table';
         noDataView.style.display = 'none';
 
         items.forEach(item => {
             const row = document.createElement('tr');
-            
             const nameCell = document.createElement('td');
             nameCell.textContent = item.name;
-            
             const pluCell = document.createElement('td');
             pluCell.style.textAlign = 'center';
             
@@ -251,7 +252,6 @@
                 const badge = document.createElement('span');
                 badge.className = 'plu-badge';
                 badge.textContent = item.plu;
-                badge.title = "Klicken zum Kopieren";
                 badge.addEventListener('click', () => copyPluToClipboard(item.plu));
                 pluCell.appendChild(badge);
             } else {
@@ -260,81 +260,107 @@
                 fallback.textContent = 'fehlt';
                 pluCell.appendChild(fallback);
             }
-            
             row.appendChild(nameCell);
             row.appendChild(pluCell);
             tableData.appendChild(row);
         });
     }
 
-    // دالة النسخ التلقائي السريع مع الإشعار المنبثق
     function copyPluToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
             toastMessage.textContent = `PLU ${text} kopiert!`;
             toastMessage.classList.add('show');
             setTimeout(() => toastMessage.classList.remove('show'), 2000);
-        }).catch(err => console.error("Fehler beim Kopieren: ", err));
+        });
     }
 
-    // محرك الفلترة الذكي والمتقدم (أول حرف + كلمات فرعية + أرقام)
     function filterProducts() {
         const query = mainSearch.value.toLowerCase().trim();
-        
         const filtered = rawProducts.filter(product => {
             const nameLower = product.name.toLowerCase();
             const words = nameLower.split(' ');
-            
-            // تحقق من الحرف الأبجدي المختار من الشريط العلوي
-            let matchesLetter = true;
-            if (currentSelectedLetter !== 'ALL') {
-                matchesLetter = product.name.toUpperCase().startsWith(currentSelectedLetter);
-            }
-
-            // تحقق من مدخلات صندوق البحث
-            let matchesQuery = true;
-            if (query !== '') {
-                const matchesName = nameLower.startsWith(query) || words.some(w => w.startsWith(query));
-                const matchesPlu = product.plu.includes(query);
-                matchesQuery = matchesName || matchesPlu;
-            }
-
+            let matchesLetter = currentSelectedLetter === 'ALL' || product.name.toUpperCase().startsWith(currentSelectedLetter);
+            let matchesQuery = query === '' || nameLower.startsWith(query) || words.some(w => w.startsWith(query)) || product.plu.includes(query);
             return matchesLetter && matchesQuery;
         });
-
         updateInterface(filtered);
     }
 
-    // الاستماع لأحداث شريط البحث
     mainSearch.addEventListener('input', filterProducts);
 
-    // الاستماع لأحداث شريط الحروف
     alphabetBar.addEventListener('click', (e) => {
         if (!e.target.classList.contains('letter-btn')) return;
-        
         document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-        
         currentSelectedLetter = e.target.getAttribute('data-letter');
         filterProducts();
     });
 
-    // العرض الأولي الافتراضي
+    // 🎙️ برمجة محرك البحث الصوتي الذكي (Web Speech API)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'de-DE'; // تهيئة لغة البحث لتكون الألمانية
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        voiceBtn.addEventListener('click', () => {
+            if (voiceBtn.classList.contains('listening')) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        recognition.onstart = () => {
+            voiceBtn.classList.add('listening');
+            mainSearch.placeholder = "Ich höre zu... (z. B. Apfel)";
+        };
+
+        recognition.onspeechend = () => {
+            recognition.stop();
+        };
+
+        recognition.onend = () => {
+            voiceBtn.classList.remove('listening');
+            mainSearch.placeholder = "Produktname, PLU oder Sprache...";
+        };
+
+        recognition.onresult = (event) => {
+            let speechToText = event.results[0][0].transcript;
+            
+            // تنظيف النص وحذف النقطة إذا وجدت في نهاية الكلام المسموع
+            if(speechToText.endsWith('.')) {
+                speechToText = speechToText.slice(0, -1);
+            }
+            
+            mainSearch.value = speechToText;
+            currentSelectedLetter = 'ALL'; // إعادة تصفية الحروف لعرض النتيجة بدقة
+            document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-letter="ALL"]').classList.add('active');
+            
+            filterProducts();
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Audio-Fehler: ", event.error);
+            voiceBtn.classList.remove('listening');
+        };
+    } else {
+        // إخفاء الزر أو تعطيله إذا كان المتصفح قديم جداً ولا يدعم الصوت
+        voiceBtn.style.display = 'none';
+        voiceStatus.innerHTML = `Modus: <b>Offline OK</b> 🟢 (Audio nicht unterstützt)`;
+    }
+
     updateInterface(rawProducts);
 
-    // 🔴 كود الـ Service Worker الذكي المدمج لجعل التطبيق يعمل 100% بدون إنترنت (Offline First)
+    // كود الـ Offline cache المدمج 
     if ('serviceWorker' in navigator) {
-        const cacheName = 'plu-cache-v1';
-        const assets = [window.location.href];
-
         navigator.serviceWorker.register(
             URL.createObjectURL(new Blob([`
-                const cacheName = '${cacheName}';
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(cacheName).then(cache => cache.addAll(${JSON.stringify(assets)})));
-                });
-                self.addEventListener('fetch', e => {
-                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-                });
+                self.addEventListener('install', e => e.waitUntil(caches.open('v2').then(c => c.addAll([window.location.href]))));
+                self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
             `], { type: 'application/javascript' }))
         );
     }

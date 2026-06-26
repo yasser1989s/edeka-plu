@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon.png">
+    <link class="app-icon" rel="apple-touch-icon" href="icon.png">
 
     <style>
         :root {
@@ -51,9 +51,19 @@
         header h1 { font-size: calc(var(--font-size-base) + 10px); color: var(--primary); font-weight: 800; }
         header p { font-size: calc(var(--font-size-base) - 2px); color: var(--text-muted); margin-top: 4px; }
 
-        .search-wrapper { display: flex; gap: 8px; margin-bottom: 12px; position: relative; }
-        .search-input { flex: 1; padding: 14px; font-size: var(--font-size-base); border: 2px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 12px; outline: none; }
+        .search-wrapper { display: flex; gap: 8px; margin-bottom: 12px; position: relative; align-items: center; }
+        .search-input { flex: 1; padding: 14px; padding-right: 45px; font-size: var(--font-size-base); border: 2px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 12px; outline: none; }
         .search-input:focus { border-color: var(--primary); }
+
+        .voice-btn { position: absolute; right: 12px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); transition: color 0.2s, transform 0.2s; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; }
+        .voice-btn:hover { color: var(--primary); transform: scale(1.1); }
+        .voice-btn.listening { color: #e74c3c; animation: pulse 1.2s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
 
         .category-filters { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; width: 100%; }
         .filter-btn { padding: 8px 14px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold; font-size: calc(var(--font-size-base) - 2px); }
@@ -123,6 +133,7 @@
 
     <div class="search-wrapper">
         <input type="text" id="mainSearch" class="search-input" placeholder="Name, PLU eingeben..." autocomplete="off" autofocus>
+        <button id="voiceSearchBtn" class="voice-btn" title="Sprachsuche">🎙️</button>
     </div>
 
     <div class="category-filters" id="categoryFilters">
@@ -131,6 +142,7 @@
         <button class="filter-btn" data-filter="FRUCHT">🍎 Früchte</button>
         <button class="filter-btn" data-filter="GEMUSE">🥦 Gemüse</button>
         <button class="filter-btn" data-filter="NUSS">🥜 Nüsse</button>
+        <button class="filter-btn" data-filter="KRAUTER">🌱 Kräuter</button>
     </div>
 
     <div class="meta-info">
@@ -192,29 +204,263 @@
 <div class="toast" id="toastMessage">Kopiert! ✓</div>
 
 <script>
-    // تفعيل الـ Service Worker لتمكين حفظ التطبيق والعمل بدون متصفح
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
-            self.addEventListener('fetch', function(e) {
-                // تلبية الطلبات برمجياً لتأهيل التطبيق كـ PWA احترافي
-            });
+            self.addEventListener('fetch', function(e) { });
         `));
     }
 
+    // كافة المنتجات التي أرسلتها مضافاً إليها الإيموجي المناسب بدقة
     const defaultProducts = [
-        { name: "Ananas", plu: "30800", emoji: "🍍", note: "" }, { name: "Apfel 3 kg Karton", plu: "30601", emoji: "🍎", note: "Karton wiegen" },
-        { name: "Äpfel Bio", plu: "30751", emoji: "🌿", note: "Bio Produkt" }, { name: "Bananen", plu: "30625", emoji: "🍌", note: "" },
-        { name: "Bananen Bio", plu: "30750", emoji: "🌿", note: "Bio Produkt" }, { name: "Avocado Hass", plu: "30801", emoji: "🥑", note: "Stückware" },
-        { name: "Brokkoli", plu: "30513", emoji: "🥦", note: "" }, { name: "Champignon weiß", plu: "30521", emoji: "🍄", note: "" },
-        { name: "Gurke (Salatgurke)", plu: "30543", emoji: "🥒", note: "Stückware" }, { name: "Bio Salatgurke", plu: "30743", emoji: "🌿", note: "Bio" },
-        { name: "Haselnüsse", plu: "30901", emoji: "🥜", note: "" }, { name: "Ingwer", plu: "30504", emoji: "🫚", note: "" },
-        { name: "Mango", plu: "30805", emoji: "🥭", note: "" }, { name: "Möhren", plu: "30551", emoji: "🥕", note: "" },
-        { name: "Paprika rot", plu: "30562", emoji: "🫑", note: "" }, { name: "Tomaten Strauch", plu: "30578", emoji: "🍅", note: "" },
-        { name: "Wassermelone", plu: "30847", emoji: "🍉", note: "Saisonal" }, { name: "Zitronen", plu: "30809", emoji: "🍋", note: "" }
+        { name: "Ananas", plu: "30800", emoji: "🍍", note: "" },
+        { name: "Apfel 3 kg Karton", plu: "30601", emoji: "🍎", note: "Karton wiegen" },
+        { name: "Apfel 5 kg Karton", plu: "30116", emoji: "🍎", note: "Karton wiegen" },
+        { name: "Äpfel", plu: "30894", emoji: "🍎", note: "" },
+        { name: "Äpfel Bio", plu: "30751", emoji: "🌿", note: "Bio" },
+        { name: "Äpfel gelegt", plu: "30603", emoji: "🍎", note: "" },
+        { name: "Äpfel Premium (Pink Lady)", plu: "30600", emoji: "🍏", note: "Premium" },
+        { name: "Äpfel Übersee", plu: "30203", emoji: "🍎", note: "" },
+        { name: "Aprikosen", plu: "30621", emoji: "🍑", note: "" },
+        { name: "Aprikosen Bio", plu: "30707", emoji: "🌿", note: "Bio" },
+        { name: "Aprikosen Premium", plu: "30622", emoji: "🍑", note: "Premium" },
+        { name: "Auberginen", plu: "30500", emoji: "🍆", note: "" },
+        { name: "Auberginen Graffiti", plu: "30547", emoji: "🍆", note: "Graffiti" },
+        { name: "Avocado Hass", plu: "30801", emoji: "🥑", note: "Stückware" },
+        { name: "Avocado Bio", plu: "30773", emoji: "🌿", note: "Bio, Stückware" },
+        { name: "Bananen", plu: "30625", emoji: "🍌", note: "" },
+        { name: "Bananen Chiquita", plu: "30620", emoji: "🍌", note: "Chiquita" },
+        { name: "Bananen Bio", plu: "30750", emoji: "🌿", note: "Bio" },
+        { name: "Bananen rot", plu: "30634", emoji: "🍌", note: "Rot" },
+        { name: "Bananen EDK WWF", plu: "30208", emoji: "🍌", note: "EDK WWF" },
+        { name: "Basilikum", plu: "30931", emoji: "🌱", note: "Kräuter" },
+        { name: "Birnen", plu: "30893", emoji: "🍐", note: "" },
+        { name: "Birne Abate Fetel", plu: "30615", emoji: "🍐", note: "" },
+        { name: "Birne Abate Fetel Premium", plu: "30627", emoji: "🍐", note: "Premium" },
+        { name: "Birne Abate Fetel Bio", plu: "30726", emoji: "🌿", note: "Bio" },
+        { name: "Birne Alexander Lucas", plu: "30626", emoji: "🍐", note: "" },
+        { name: "Birne Carmen", plu: "30606", emoji: "🍐", note: "" },
+        { name: "Birne Forelle", plu: "30610", emoji: "🍐", note: "" },
+        { name: "Birne Flamingo", plu: "30609", emoji: "🍐", note: "" },
+        { name: "Birne Nashi", plu: "30663", emoji: "🍐", note: "Nashi" },
+        { name: "Birne Packham's Triumph", plu: "30765", emoji: "🍐", note: "" },
+        { name: "Birne Rosemarie", plu: "30616", emoji: "🍐", note: "" },
+        { name: "Birne Santa Maria", plu: "30619", emoji: "🍐", note: "" },
+        { name: "Birne Tongern", plu: "30628", emoji: "🍐", note: "" },
+        { name: "Birne Köstliche von Charneux", plu: "30200", emoji: "🍐", note: "" },
+        { name: "Blutorangen", plu: "30818", emoji: "🍊", note: "" },
+        { name: "Bohnen Bobby", plu: "30506", emoji: "🫛", note: "" },
+        { name: "Bohnen Busch", plu: "30510", emoji: "🫛", note: "" },
+        { name: "Bohnen Busch gelb", plu: "30102", emoji: "🫛", note: "" },
+        { name: "Bohnen Stange", plu: "30579", emoji: "🫛", note: "" },
+        { name: "Brokkoli", plu: "30513", emoji: "🥦", note: "" },
+        { name: "Brombeeren", plu: "30862", emoji: "🫐", note: "" },
+        { name: "Brombeeren lose", plu: "30645", emoji: "🫐", note: "Lose" },
+        { name: "Cantaloupe", plu: "30845", emoji: "🍈", note: "Melone" },
+        { name: "Cashewkerne", plu: "30908", emoji: "🥜", note: "Nüsse" },
+        { name: "Champignon weiß", plu: "30521", emoji: "🍄", note: "" },
+        { name: "Champignon Riesen", plu: "30520", emoji: "🍄", note: "" },
+        { name: "Champignon Portobello", plu: "30107", emoji: "🍄", note: "Portobello" },
+        { name: "Cherry Tomaten Rispen Premium", plu: "30526", emoji: "🍅", note: "Premium" },
+        { name: "Chicorée", plu: "30523", emoji: "🥬", note: "" },
+        { name: "Chinakohl", plu: "30522", emoji: "🥬", note: "" },
+        { name: "Chinakohl Bio", plu: "30760", emoji: "🌿", note: "Bio" },
+        { name: "Chili grün", plu: "30924", emoji: "🌶️", note: "" },
+        { name: "Chili rot", plu: "30923", emoji: "🌶️", note: "" },
+        { name: "Clementinen", plu: "30814", emoji: "🍊", note: "" },
+        { name: "Clementinen lose", plu: "30652", emoji: "🍊", note: "Lose" },
+        { name: "Cocktailtomaten", plu: "30588", emoji: "🍅", note: "" },
+        { name: "Cocktailtomaten Rispen DT", plu: "30585", emoji: "🍅", note: "DT" },
+        { name: "Coeur de Boeuf Tomaten", plu: "30539", emoji: "🍅", note: "" },
+        { name: "Coeur de Boeuf Premium", plu: "30505", emoji: "🍅", note: "Premium" },
+        { name: "Cranberries", plu: "30898", emoji: "🍒", note: "" },
+        { name: "Curryblätter", plu: "30963", emoji: "🌱", note: "Kräuter" },
+        { name: "Datteln", plu: "30912", emoji: "🌴", note: "" },
+        { name: "Dill", plu: "30934", emoji: "🌱", note: "Kräuter" },
+        { name: "Eichblattsalat", plu: "30984", emoji: "🥬", note: "Salat" },
+        { name: "Endiviensalat", plu: "30989", emoji: "🥬", note: "Salat" },
+        { name: "Eissalat", plu: "30981", emoji: "🥬", note: "Salat" },
+        { name: "Erdbeeren", plu: "30852", emoji: "🍓", note: "" },
+        { name: "Erdbeeren Reg. Wiegeschale", plu: "30640", emoji: "🍓", note: "Wiegeschale" },
+        { name: "Erdnüsse", plu: "30904", emoji: "🥜", note: "" },
+        { name: "Erdnüsse Jumbo", plu: "30636", emoji: "🥜", note: "Jumbo" },
+        { name: "Erbsen", plu: "30599", emoji: "🫛", note: "" },
+        { name: "Estragon", plu: "30960", emoji: "🌱", note: "Kräuter" },
+        { name: "Feldsalat", plu: "30507", emoji: "🥬", note: "Salat" },
+        { name: "Feigen", plu: "30827", emoji: "🫚", note: "" },
+        { name: "Fenchel", plu: "30538", emoji: "🥬", note: "" },
+        { name: "Friséesalat", plu: "30988", emoji: "🥬", note: "Salat" },
+        { name: "Frische Kräuter", plu: "30929", emoji: "🌱", note: "Kräuter" },
+        { name: "Galia Melone", plu: "30833", emoji: "🍈", note: "" },
+        { name: "Galia Melone Bio", plu: "30711", emoji: "🌿", note: "Bio" },
+        { name: "Granatapfel", plu: "30821", emoji: "🍎", note: "" },
+        { name: "Granatapfel Bio", plu: "30712", emoji: "🌿", note: "Bio" },
+        { name: "Grapefruit", plu: "30817", emoji: "🍊", note: "" },
+        { name: "Blutgrapefruit Bio (Stück)", plu: "30709", emoji: "🌿", note: "Bio, Stückware" },
+        { name: "Grüne Paprika", plu: "30563", emoji: "🫑", note: "" },
+        { name: "Grüne Peperoni", plu: "30565", emoji: "🌶️", note: "" },
+        { name: "Grünkohl (Stängelkohl)", plu: "30587", emoji: "🥬", note: "" },
+        { name: "Gurke (Salatgurke)", plu: "30543", emoji: "🥒", note: "Stückware" },
+        { name: "Bio Salatgurke", plu: "30743", emoji: "🌿", note: "Bio, Stückware" },
+        { name: "Haselnüsse", plu: "30901", emoji: "🥜", note: "" },
+        { name: "Haselnüsse lose", plu: "30643", emoji: "🥜", note: "Lose" },
+        { name: "Heidelbeeren", plu: "30861", emoji: "🫐", note: "" },
+        { name: "Heidelbeeren lose", plu: "30693", emoji: "🫐", note: "Lose" },
+        { name: "Himbeeren", plu: "30855", emoji: "🍓", note: "" },
+        { name: "Himbeeren lose", plu: "30641", emoji: "🍓", note: "Lose" },
+        { name: "Honigmelone", plu: "30834", emoji: "🍈", note: "" },
+        { name: "Hokkaido Kürbis", plu: "30727", emoji: "🎃", note: "" },
+        { name: "Ingwer", plu: "30504", emoji: "🫚", note: "" },
+        { name: "Ingwer Bio", plu: "30766", emoji: "🌿", note: "Bio" },
+        { name: "Johannisbeeren rot", plu: "30866", emoji: "🍒", note: "" },
+        { name: "Johannisbeeren schwarz", plu: "30868", emoji: "🍒", note: "" },
+        { name: "Johannisbeeren lose", plu: "30642", emoji: "🍒", note: "Lose" },
+        { name: "Kaki (Persimon)", plu: "30825", emoji: "🍅", note: "" },
+        { name: "Kartoffeln festkochend", plu: "30511", emoji: "🥔", note: "" },
+        { name: "Kartoffeln süß Bio", plu: "30710", emoji: "🌿", note: "Bio, Süßkartoffel" },
+        { name: "Kerbel", plu: "30959", emoji: "🌱", note: "Kräuter" },
+        { name: "Kirschen", plu: "30871", emoji: "🍒", note: "" },
+        { name: "Kirschen süß", plu: "30650", emoji: "🍒", note: "" },
+        { name: "Kirschen süß Premium", plu: "30204", emoji: "🍒", note: "Premium" },
+        { name: "Knoblauch", plu: "30926", emoji: "🧄", note: "" },
+        { name: "Knoblauch frisch", plu: "30541", emoji: "🧄", note: "Frisch" },
+        { name: "Kokosnuss", plu: "30828", emoji: "🥥", note: "" },
+        { name: "Kopfsalat", plu: "30983", emoji: "🥬", note: "Salat" },
+        { name: "Koriander", plu: "30935", emoji: "🌱", note: "Kräuter" },
+        { name: "Kräuterseitlinge", plu: "30525", emoji: "🍄", note: "Pilze" },
+        { name: "Kumquats", plu: "30637", emoji: "🍊", note: "" },
+        { name: "Kurkuma", plu: "30920", emoji: "🫚", note: "" },
+        { name: "Limetten", plu: "30808", emoji: "🍋", note: "" },
+        { name: "Limequats", plu: "30207", emoji: "🍋", note: "" },
+        { name: "Litschis", plu: "30656", emoji: "🍒", note: "" },
+        { name: "Lollo Bionda", plu: "30985", emoji: "🥬", note: "Salat" },
+        { name: "Lollo Rosso", plu: "30986", emoji: "🥬", note: "Salat" },
+        { name: "Lorbeer", plu: "30954", emoji: "🌱", note: "Kräuter" },
+        { name: "Löwenzahn", plu: "30594", emoji: "🌱", note: "" },
+        { name: "Macadamia", plu: "30906", emoji: "🥜", note: "Nüsse" },
+        { name: "Majoran", plu: "30958", emoji: "🌱", note: "Kräuter" },
+        { name: "Mandarinen", plu: "30816", emoji: "🍊", note: "" },
+        { name: "Mandeln", plu: "30909", emoji: "🥜", note: "Nüsse" },
+        { name: "Mangold", plu: "30553", emoji: "🥬", note: "" },
+        { name: "Mango", plu: "30805", emoji: "🥭", note: "" },
+        { name: "Mango Bio", plu: "30701", emoji: "🌿", note: "Bio" },
+        { name: "Mangostan", plu: "30648", emoji: "🥭", note: "" },
+        { name: "Maronen (Esskastanien)", plu: "30902", emoji: "🌰", note: "" },
+        { name: "Maronen", plu: "30661", emoji: "🌰", note: "" },
+        { name: "Meerrettich", plu: "30552", emoji: "🥕", note: "" },
+        { name: "Minneolas", plu: "30657", emoji: "🍊", note: "" },
+        { name: "Minze", plu: "30942", emoji: "🌱", note: "Kräuter" },
+        { name: "Mirabellen", plu: "30877", emoji: "🍒", note: "" },
+        { name: "Möhren", plu: "30551", emoji: "🥕", note: "" },
+        { name: "Möhren Bio", plu: "30778", emoji: "🌿", note: "Bio" },
+        { name: "Muskatkürbis", plu: "30544", emoji: "🎃", note: "" },
+        { name: "Nekatcot", plu: "30658", emoji: "🍑", note: "" },
+        { name: "Nektarinen", plu: "30874", emoji: "🍑", note: "" },
+        { name: "Nektarinen Bio", plu: "30705", emoji: "🌿", note: "Bio" },
+        { name: "Netzmelone", plu: "30844", emoji: "🍈", note: "Melone" },
+        { name: "Oregano", plu: "30951", emoji: "🌱", note: "Kräuter" },
+        { name: "Orangen", plu: "30812", emoji: "🍊", note: "" },
+        { name: "Papaya", plu: "30822", emoji: "🥭", note: "" },
+        { name: "Papaya Bio", plu: "30706", emoji: "🌿", note: "Bio" },
+        { name: "Paprika gelb", plu: "30561", emoji: "🫑", note: "" },
+        { name: "Paprika gelb unbehandelt", plu: "30533", emoji: "🫑", note: "Unbehandelt" },
+        { name: "Paprika grün unbehandelt", plu: "30534", emoji: "🫑", note: "Unbehandelt" },
+        { name: "Paprika Mini Mix Spitz", plu: "30529", emoji: "🫑", note: "" },
+        { name: "Paprika orange", plu: "30564", emoji: "🫑", note: "" },
+        { name: "Paprika orange unbehandelt", plu: "30532", emoji: "🫑", note: "Unbehandelt" },
+        { name: "Paprika rot", plu: "30562", emoji: "🫑", note: "" },
+        { name: "Paprika rot unbehandelt", plu: "30531", emoji: "🫑", note: "Unbehandelt" },
+        { name: "Paranüsse", plu: "30910", emoji: "🥜", note: "Nüsse" },
+        { name: "Pastinaken", plu: "30548", emoji: "🥕", note: "" },
+        { name: "Passionsfrucht", plu: "30823", emoji: "🍇", note: "" },
+        { name: "Peperoni grün", plu: "30565", emoji: "🌶️", note: "" },
+        { name: "Peperoni rot", plu: "30566", emoji: "🌶️", note: "" },
+        { name: "Pekannüsse", plu: "30905", emoji: "🥜", note: "Nüsse" },
+        { name: "Petersilie", plu: "30932", emoji: "🌱", note: "Kräuter" },
+        { name: "Pfifferlinge", plu: "30567", emoji: "🍄", note: "Pilze" },
+        { name: "Pfirsiche", plu: "30875", emoji: "🍑", note: "" },
+        { name: "Pfirsich Bio", plu: "30704", emoji: "🌿", note: "Bio" },
+        { name: "Pfirsich gelb", plu: "30673", emoji: "🍑", note: "" },
+        { name: "Pfirsich gelb Premium", plu: "30679", emoji: "🍑", note: "Premium" },
+        { name: "Pfirsich weiß", plu: "30672", emoji: "🍑", note: "" },
+        { name: "Pfirsich wild", plu: "30680", emoji: "🍑", note: "Plattpfirsich" },
+        { name: "Physalis", plu: "30696", emoji: "🍊", note: "" },
+        { name: "Pistazien", plu: "30907", emoji: "🥜", note: "Nüsse" },
+        { name: "Pistazien lose", plu: "30206", emoji: "🥜", note: "Nüsse, Lose" },
+        { name: "Pomelo", plu: "30819", emoji: "🍊", note: "" },
+        { name: "Porree", plu: "30554", emoji: "🥬", note: "" },
+        { name: "Portulak", plu: "30994", emoji: "🥬", note: "" },
+        { name: "Postelein", plu: "30999", emoji: "🥬", note: "" },
+        { name: "Radicchio", plu: "30570", emoji: "🥬", note: "Salat" },
+        { name: "Rambutan", plu: "30676", emoji: "🍓", note: "" },
+        { name: "Rhabarber", plu: "30675", emoji: "🥬", note: "" },
+        { name: "Rispentomaten", plu: "30524", emoji: "🍅", note: "" },
+        { name: "Rispentomaten Mini", plu: "30503", emoji: "🍅", note: "" },
+        { name: "Rispentomaten orange", plu: "30536", emoji: "🍅", note: "" },
+        { name: "Romanasalat", plu: "30987", emoji: "🥬", note: "Salat" },
+        { name: "Rosinen", plu: "30915", emoji: "🍇", note: "" },
+        { name: "Rosmarin", plu: "30947", emoji: "🌱", note: "Kräuter" },
+        { name: "Rote Bete", Antiquityplu: "30572", emoji: "🥔", note: "", plu: "30572" },
+        { name: "Rote Bete unbehandelt", plu: "30571", emoji: "🥔", note: "Unbehandelt" },
+        { name: "Rote Zwiebeln", plu: "30597", emoji: "🧅", note: "" },
+        { name: "Rotkohl", plu: "30574", emoji: "🥬", note: "" },
+        { name: "Rotkohl früh", plu: "30105", emoji: "🥬", note: "" },
+        { name: "Rucola", plu: "30970", emoji: "🥬", note: "Salat" },
+        { name: "Salbei", plu: "30943", emoji: "🌱", note: "Kräuter" },
+        { name: "Schalotten", plu: "30927", emoji: "🧅", note: "" },
+        { name: "Sellerie", plu: "30580", emoji: "🥬", note: "" },
+        { name: "Shiitake", plu: "30109", emoji: "🍄", note: "Pilze" },
+        { name: "Schnittlauch", plu: "30933", emoji: "🌱", note: "Kräuter" },
+        { name: "Schmorgurken", plu: "30549", emoji: "🥒", note: "" },
+        { name: "Spargel weiß/violett", plu: "30583", emoji: "🥬", note: "" },
+        { name: "Spargel violett 20-30 mm", plu: "30569", emoji: "🥬", note: "" },
+        { name: "Spargel weiß unbehandelt 16-26 mm", plu: "30114", emoji: "🥬", note: "Unbehandelt" },
+        { name: "Spinat (Babyspinat)", plu: "30972", emoji: "🥬", note: "" },
+        { name: "Spitzkohl", plu: "30586", emoji: "🥬", note: "" },
+        { name: "Spitzkohl Bio", plu: "30735", emoji: "🌿", note: "Bio" },
+        { name: "Steckrübe", plu: "30581", emoji: "🥕", note: "" },
+        { name: "Steinpilze", plu: "30108", emoji: "🍄", note: "Pilze" },
+        { name: "Stachelbeeren", plu: "30869", emoji: "🫐", note: "" },
+        { name: "Thymian", plu: "30949", emoji: "🌱", note: "Kräuter" },
+        { name: "Tomaten", plu: "30589", emoji: "🍅", note: "" },
+        { name: "Tomaten Cherry Mini Premium", plu: "30592", emoji: "🍅", note: "Premium" },
+        { name: "Tomaten Fleisch", plu: "30353", emoji: "🍅", note: "" },
+        { name: "Tomaten Fleisch Premium", plu: "30113", emoji: "🍅", note: "Premium" },
+        { name: "Tomaten Pflaumen-Strauch", plu: "30576", emoji: "🍅", note: "" },
+        { name: "Tomaten Rispen unbehandelt", plu: "30100", emoji: "🍅", note: "Unbehandelt" },
+        { name: "Tomaten Roma", plu: "30512", emoji: "🍅", note: "" },
+        { name: "Topinambur", plu: "30577", emoji: "🥔", note: "" },
+        { name: "Trauben grün", plu: "30882", emoji: "🍇", note: "" },
+        { name: "Trauben rot", plu: "30883", emoji: "🍇", note: "" },
+        { name: "Trauben schwarz", plu: "30886", emoji: "🍇", note: "" },
+        { name: "Trauben kernlos grün", plu: "30887", emoji: "🍇", note: "Kernlos" },
+        { name: "Trauben kernlos rot", plu: "30888", emoji: "🍇", note: "Kernlos" },
+        { name: "Trauben kernlos schwarz", plu: "30889", emoji: "🍇", note: "Kernlos" },
+        { name: "Trockenfeigen", plu: "30913", emoji: "🫚", note: "Trockenobst" },
+        { name: "Trockenobst lose", plu: "30646", emoji: "🍇", note: "Lose" },
+        { name: "Walnüsse", plu: "30900", emoji: "🌰", note: "Nüsse" },
+        { name: "Walnüsse extra groß", plu: "30692", emoji: "🌰", note: "Nüsse" },
+        { name: "Wassermelone", plu: "30847", emoji: "🍉", note: "" },
+        { name: "Wassermelone gelb", plu: "30649", emoji: "🍉", note: "" },
+        { name: "Wassermelone gelb geschnitten", plu: "30614", emoji: "🍉", note: "Geschnitten" },
+        { name: "Wassermelone rot geschnitten", plu: "30618", emoji: "🍉", note: "Geschnitten" },
+        { name: "Wassermelone rot kernarm", plu: "30653", emoji: "🍉", note: "Kernarm" },
+        { name: "Wassermelone rot Premium", plu: "30654", emoji: "🍉", note: "Premium" },
+        { name: "Weißkohl", plu: "30590", emoji: "🥬", note: "" },
+        { name: "Weißkohl früh", plu: "30508", emoji: "🥬", note: "" },
+        { name: "Weißkohl unbehandelt", plu: "30598", emoji: "🥬", note: "Unbehandelt" },
+        { name: "Weißkohl Urtyp", plu: "30542", emoji: "🥬", note: "Urtyp" },
+        { name: "Wirsing", plu: "30591", emoji: "🥬", note: "" },
+        { name: "Zitronen", plu: "30809", emoji: "🍋", note: "" },
+        { name: "Zitronengras", plu: "30106", emoji: "🌱", note: "" },
+        { name: "Zitronenmelisse", plu: "30961", emoji: "🌱", note: "Kräuter" },
+        { name: "Zucchini grün", plu: "30596", emoji: "🥒", note: "" },
+        { name: "Zwiebeln", plu: "30595", emoji: "🧅", note: "" },
+        { name: "Zwetschgen", plu: "30695", emoji: "🍒", note: "" }
     ];
 
     const tableData = document.getElementById('tableData');
     const mainSearch = document.getElementById('mainSearch');
+    const voiceSearchBtn = document.getElementById('voiceSearchBtn');
     const resultsCount = document.getElementById('resultsCount');
     const noDataView = document.getElementById('noDataView');
     const mainTable = document.getElementById('mainTable');
@@ -242,31 +488,37 @@
     let savedFontSize = localStorage.getItem('plu_font_size') || 'font-medium';
     document.body.className = savedFontSize;
 
-    window.addEventListener('keydown', (e) => {
-        if (e.key === '/') {
-            if (document.activeElement !== mainSearch) {
-                e.preventDefault();
-                mainSearch.focus();
-                mainSearch.select();
-            }
-        }
-        if (e.key === 'Escape') {
-            mainSearch.value = '';
-            filterProducts();
-        }
-    });
+    // ميزة البحث الصوتي الاحترافي باللغة الألمانية
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'de-DE'; 
+        recognition.interimResults = false;
 
-    newProdImg.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                uploadedImageBase64 = event.target.result;
-                alert("📸 Foto geladen!");
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+        voiceSearchBtn.addEventListener('click', () => {
+            if (voiceSearchBtn.classList.contains('listening')) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        recognition.onstart = () => {
+            voiceSearchBtn.classList.add('listening');
+            voiceSearchBtn.textContent = '🛑';
+        };
+
+        recognition.onresult = (event) => {
+            const speechResult = event.results[0][0].transcript.toLowerCase().replace('.', '');
+            mainSearch.value = speechResult;
+            filterProducts();
+        };
+        
+        recognition.onend = () => {
+            voiceSearchBtn.classList.remove('listening');
+            voiceSearchBtn.textContent = '🎙️';
+        };
+    }
 
     function toggleFavorite(productName) {
         if (favorites.includes(productName)) {
@@ -354,11 +606,20 @@
         const query = mainSearch.value.toLowerCase().trim();
         const filtered = rawProducts.filter(product => {
             const nameLower = product.name.toLowerCase();
+            const noteLower = product.note ? product.note.toLowerCase() : "";
             let matchesCategory = true;
-            if (currentCategoryFilter === 'BIO') matchesCategory = nameLower.includes('bio') || product.note.toLowerCase().includes('bio');
-            else if (currentCategoryFilter === 'FRUCHT') matchesCategory = ['apfel', 'banane', 'ananas', 'mango', 'melone', 'citro', 'frucht'].some(keyword => nameLower.includes(keyword));
-            else if (currentCategoryFilter === 'GEMUSE') matchesCategory = ['gurke', 'brok', 'pilz', 'möhr', 'papri', 'toma'].some(keyword => nameLower.includes(keyword));
-            else if (currentCategoryFilter === 'NUSS') matchesCategory = ['nuss', 'kerne'].some(keyword => nameLower.includes(keyword));
+            
+            if (currentCategoryFilter === 'BIO') {
+                matchesCategory = nameLower.includes('bio') || noteLower.includes('bio');
+            } else if (currentCategoryFilter === 'FRUCHT') {
+                matchesCategory = ['apfel', 'äpfel', 'banan', 'anan', 'mang', 'melon', 'citr', 'fruch', 'aprik', 'avoc', 'birn', 'blut', 'brom', 'cran', 'datt', 'erdb', 'feig', 'gran', 'grap', 'joha', 'kaki', 'kirs', 'kumq', 'lime', 'lits', 'mand', 'minn', 'mira', 'nekt', 'papa', 'pass', 'pfir', 'phys', 'pome', 'ramb', 'rhab', 'traub', 'zwet', 'zitro'].some(k => nameLower.includes(k));
+            } else if (currentCategoryFilter === 'GEMUSE') {
+                matchesCategory = ['auberg', 'bohn', 'brok', 'cham', 'chic', 'chin', 'chil', 'cock', 'coeu', 'eich', 'endi', 'eiss', 'erbs', 'feld', 'fenc', 'fris', 'graf', 'papr', 'pepe', 'grün', 'gurk', 'kart', 'knob', 'kopf', 'kräu', 'loll', 'löwe', 'mang', 'meer', 'möhr', 'musk', 'past', 'pete', 'pfif', 'porr', 'port', 'post', 'radi', 'risp', 'roma', 'bete', 'zwie', 'rotk', 'ruco', 'salb', 'scha', 'sell', 'shii', 'schn', 'schm', 'spar', 'spin', 'spitz', 'stec', 'stei', 'stac', 'thym', 'toma', 'topi', 'weiß', 'wirs', 'zucc'].some(k => nameLower.includes(k)) && !['erdbeeren', 'johannisbeeren', 'brombeeren', 'heidelbeeren', 'himbeeren', 'stachelbeeren'].some(k => nameLower.includes(k));
+            } else if (currentCategoryFilter === 'NUSS') {
+                matchesCategory = ['nuss', 'nüsse', 'kerne', 'mandeln', 'cashew', 'para', 'peka', 'pist'].some(k => nameLower.includes(k));
+            } else if (currentCategoryFilter === 'KRAUTER') {
+                matchesCategory = ['basi', 'curr', 'dill', 'estr', 'kräu', 'kerb', 'kori', 'lorb', 'majo', 'minz', 'oreg', 'pete', 'rosm', 'salb', 'schn', 'thym', 'melis', 'gras'].some(k => nameLower.includes(k)) || noteLower.includes('kräuter');
+            }
 
             return matchesCategory && (query === '' || nameLower.includes(query) || product.plu.includes(query));
         });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLU Quick-Find Pro + Voice</title>
+    <title>PLU Quick-Find Pro v6</title>
     <style>
         :root {
             --bg-main: #f4f6f9;
@@ -16,6 +16,7 @@
             --row-even: #f8f9fa;
             --row-hover: #c8d6e5;
             --voice-active: #ee5253;
+            --fav-color: #f1c40f;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -33,21 +34,19 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); padding: 15px; display: flex; justify-content: center; }
+        body { background-color: var(--bg-main); color: var(--text-main); padding: 15px; display: flex; flex-direction: column; align-items: center; }
         
-        .app-container { width: 100%; max-width: 700px; background: var(--bg-card); padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .app-container { width: 100%; max-width: 700px; background: var(--bg-card); padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; }
         
         header { text-align: center; margin-bottom: 20px; }
         header h1 { font-size: 24px; color: var(--primary); font-weight: 800; }
         header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-        /* تعديل صندوق البحث ليحتوي على زر الميكروفون */
         .search-wrapper { display: flex; gap: 8px; margin-bottom: 15px; position: relative; }
         .search-input { flex: 1; padding: 16px; font-size: 16px; border: 2px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 12px; outline: none; transition: all 0.2s ease; }
         .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(29, 209, 161, 0.2); }
 
-        /* زر البحث الصوتي الاحترافي */
-        .voice-btn { width: 54px; border: none; background: var(--primary); color: white; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .voice-btn { width: 54px; border: none; background: var(--primary); color: white; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s ease; }
         .voice-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .voice-btn.listening { background: var(--voice-active); animation: pulse 1.2s infinite; }
 
@@ -57,6 +56,13 @@
             100% { box-shadow: 0 0 0 0 rgba(238, 82, 83, 0); }
         }
 
+        .fav-section { display: none; background: rgba(241, 196, 15, 0.08); border: 2px dashed var(--fav-color); padding: 12px; border-radius: 12px; margin-bottom: 15px; }
+        .fav-title { font-size: 13px; font-weight: 800; color: #d35400; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .fav-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .fav-chip { background: var(--bg-card); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.15s ease; }
+        .fav-chip:hover { border-color: var(--primary); transform: translateY(-1px); }
+        .fav-chip .chip-plu { background: var(--primary); color: white; font-family: monospace; font-size: 12px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+
         .alphabet-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; justify-content: center; padding: 5px; background: var(--bg-main); border-radius: 12px; }
         .letter-btn { padding: 8px 12px; border: none; background: var(--bg-card); color: var(--text-main); font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.1s ease; }
         .letter-btn:hover, .letter-btn.active { background: var(--primary); color: white; transform: translateY(-2px); }
@@ -65,10 +71,16 @@
         
         .list-wrapper { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 14px 16px; font-size: 15px; border-bottom: 1px solid var(--border); }
+        th, td { padding: 12px 14px; font-size: 15px; border-bottom: 1px solid var(--border); vertical-align: middle; }
         th { background: var(--border); color: var(--text-main); font-weight: 700; font-size: 13px; text-transform: uppercase; }
         tr:nth-child(even) { background-color: var(--row-even); }
         tr:hover { background-color: var(--row-hover); }
+
+        .prod-name-container { display: flex; align-items: center; gap: 10px; }
+        .prod-emoji { font-size: 20px; width: 24px; text-align: center; }
+        .star-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: #ccc; transition: transform 0.1s ease; padding: 4px; }
+        .star-btn:hover { transform: scale(1.2); }
+        .star-btn.active { color: var(--fav-color); }
 
         .plu-badge { background: rgba(29, 209, 161, 0.15); color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-family: monospace; font-size: 15px; cursor: pointer; display: inline-block; transition: all 0.2s ease; }
         .plu-badge:hover { transform: scale(1.08); background: var(--primary); color: white; }
@@ -77,6 +89,17 @@
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #2f3542; color: #f5f6fa; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999; }
         .toast.show { transform: translateX(-50%) translateY(0); }
         .fallback-text { color: #ff6b6b; font-style: italic; font-size: 13px; }
+
+        /* منطقة الإدارة المحمية بالباسورد */
+        .admin-panel { width: 100%; max-width: 700px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .admin-toggle-btn { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0 auto 10px auto; font-weight: bold; }
+        .admin-toggle-btn:hover { color: var(--primary); }
+        .admin-content { display: none; flex-direction: column; gap: 10px; border-top: 1px dashed var(--border); padding-top: 12px; }
+        .admin-form-group { display: flex; flex-wrap: wrap; gap: 8px; }
+        .admin-input { flex: 1; min-width: 130px; padding: 10px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 8px; font-size: 14px; outline: none; }
+        .admin-input:focus { border-color: var(--primary); }
+        .admin-submit-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .admin-submit-btn:hover { background: var(--primary-hover); }
     </style>
 </head>
 <body>
@@ -84,8 +107,13 @@
 <div class="app-container">
     <header>
         <h1>⚡ PLU Quick-Find Pro</h1>
-        <p>Audio-Suche • Offline-Fähig • Klick zum Kopieren</p>
+        <p>Favoriten • Audio-Suche • Klick zum Kopieren</p>
     </header>
+
+    <div class="fav-section" id="favSection">
+        <div class="fav-title">⭐ Meistgenutzt (Häufig verwendet)</div>
+        <div class="fav-grid" id="favGrid"></div>
+    </div>
 
     <div class="search-wrapper">
         <input type="text" id="mainSearch" class="search-input" placeholder="Produktname, PLU oder Sprache..." autocomplete="off" autofocus>
@@ -105,8 +133,9 @@
         <table id="mainTable">
             <thead>
                 <tr>
+                    <th style="width: 40px;"></th>
                     <th>Produktname</th>
-                    <th style="width: 120px; text-align: center;">PLU</th>
+                    <th style="width: 110px; text-align: center;">PLU</th>
                 </tr>
             </thead>
             <tbody id="tableData"></tbody>
@@ -115,96 +144,107 @@
     </div>
 </div>
 
+<div class="admin-panel">
+    <button class="admin-toggle-btn" id="adminToggleBtn">🔒 Administrator-Bereich (🔒 لوحة المدير)</button>
+    <div class="admin-content" id="adminContent">
+        <div class="admin-form-group">
+            <input type="text" id="newProdName" class="admin-input" placeholder="Produktname (z.B. Mango)...">
+            <input type="text" id="newProdPlu" class="admin-input" placeholder="PLU Code (z.B. 1234)...">
+            <input type="text" id="newProdEmoji" class="admin-input" placeholder="Emoji (z.B. 🥭)..." style="max-width: 90px; text-align: center;">
+            <button class="admin-submit-btn" id="addProdBtn">Hinzufügen (+)</button>
+        </div>
+    </div>
+</div>
+
 <div class="toast" id="toastMessage">Nummer kopiert! ✓</div>
 
 <script>
-    // قائمة البيانات الكاملة
-    const rawProducts = [
-        { name: "Ananas", plu: "30800" }, { name: "Apfel 3 kg Karton", plu: "30601" }, { name: "Apfel 5 kg Karton", plu: "30116" },
-        { name: "Äpfel", plu: "30894" }, { name: "Äpfel Bio", plu: "30751" }, { name: "Äpfel gelegt", plu: "30603" },
-        { name: "Äpfel Premium (Pink Lady)", plu: "30600" }, { name: "Äpfel Übersee", plu: "30203" }, { name: "Aprikosen", plu: "30621" },
-        { name: "Aprikosen Bio", plu: "30707" }, { name: "Aprikosen Premium", plu: "30622" }, { name: "Auberginen", plu: "30500" },
-        { name: "Auberginen Graffiti", plu: "30547" }, { name: "Avocado Hass", plu: "30801" }, { name: "Avocado Bio", plu: "30773" },
-        { name: "Bananen", plu: "30625" }, { name: "Bananen Chiquita", plu: "30620" }, { name: "Bananen Bio", plu: "30750" },
-        { name: "Bananen rot", plu: "30634" }, { name: "Bananen EDK WWF", plu: "30208" }, { name: "Basilikum", plu: "30931" },
-        { name: "Birnen", plu: "30893" }, { name: "Birne Abate Fetel", plu: "30615" }, { name: "Birne Abate Fetel Premium", plu: "30627" },
-        { name: "Birne Abate Fetel Bio", plu: "30726" }, { name: "Birne Alexander Lucas", plu: "30626" }, { name: "Birne Carmen", plu: "30606" },
-        { name: "Birne Forelle", plu: "30610" }, { name: "Birne Flamingo", plu: "30609" }, { name: "Birne Nashi", plu: "30663" },
-        { name: "Birne Packham's Triumph", plu: "30765" }, { name: "Birne Rosemarie", plu: "30616" }, { name: "Birne Santa Maria", plu: "30619" },
-        { name: "Birne Tongern", plu: "30628" }, { name: "Birne Köstliche von Charneux", plu: "30200" }, { name: "Blutorangen", plu: "30818" },
-        { name: "Bohnen Bobby", plu: "30506" }, { name: "Bohnen Busch", plu: "30510" }, { name: "Bohnen Busch gelb", plu: "30102" },
-        { name: "Bohnen Stange", plu: "30579" }, { name: "Brokkoli", plu: "30513" }, { name: "Brombeeren", plu: "30862" },
-        { name: "Brombeeren lose", plu: "30645" }, { name: "Cantaloupe", plu: "30845" }, { name: "Cashewkerne", plu: "30908" },
-        { name: "Champignon weiß", plu: "30521" }, { name: "Champignon Riesen", plu: "30520" }, { name: "Champignon Portobello", plu: "30107" },
-        { name: "Cherry Tomaten Rispen Premium", plu: "30526" }, { name: "Chicorée", plu: "30523" }, { name: "Chinakohl", plu: "30522" },
-        { name: "Chinakohl Bio", plu: "30760" }, { name: "Chili grün", plu: "30924" }, { name: "Chili rot", plu: "30923" },
-        { name: "Clementinen", plu: "30814" }, { name: "Clementinen lose", plu: "30652" }, { name: "Cocktailtomaten", plu: "30588" },
-        { name: "Cocktailtomaten Rispen DT", plu: "30585" }, { name: "Coeur de Boeuf Tomaten", plu: "30539" }, { name: "Coeur de Boeuf Premium", plu: "30505" },
-        { name: "Cranberries", plu: "30898" }, { name: "Curryblätter", plu: "30963" }, { name: "Datteln", plu: "30912" },
-        { name: "Dill", plu: "30934" }, { name: "Eichblattsalat", plu: "30984" }, { name: "Endiviensalat", plu: "30989" },
-        { name: "Eissalat", plu: "30981" }, { name: "Erdbeeren", plu: "30852" }, { name: "Erdbeeren Reg. Wiegeschale", plu: "30640" },
-        { name: "Erdnüsse", plu: "30904" }, { name: "Erdnüsse Jumbo", plu: "30636" }, { name: "Erbsen", plu: "30599" },
-        { name: "Estragon", plu: "30960" }, { name: "Feldsalat", plu: "30507" }, { name: "Feigen", plu: "30827" },
-        { name: "Fenchel", plu: "30538" }, { name: "Friséesalat", plu: "30988" }, { name: "Frische Kräuter", plu: "30929" },
-        { name: "Galia Melone", plu: "30833" }, { name: "Galia Melone Bio", plu: "30711" }, { name: "Granatapfel", plu: "30821" },
-        { name: "Granatapfel Bio", plu: "30712" }, { name: "Grapefruit", plu: "30817" }, { name: "Blutgrapefruit Bio (Stück)", plu: "30709" },
-        { name: "Grüne Paprika", plu: "30563" }, { name: "Grüne Peperoni", plu: "30565" }, { name: "Grünkohl (Stängelkohl)", plu: "30587" },
-        { name: "Gurke (Salatgurke)", plu: "" }, { name: "Bio Salatgurke", plu: "" }, { name: "Haselnüsse", plu: "30901" },
-        { name: "Haselnüsse lose", plu: "30643" }, { name: "Heidelbeeren", plu: "30861" }, { name: "Heidelbeeren lose", plu: "30693" },
-        { name: "Himbeeren", plu: "30855" }, { name: "Himbeeren lose", plu: "30641" }, { name: "Honigmelone", plu: "30834" },
-        { name: "Hokkaido Kürbis", plu: "30727" }, { name: "Ingwer", plu: "30504" }, { name: "Ingwer Bio", plu: "30766" },
-        { name: "Johannisbeeren rot", plu: "30866" }, { name: "Johannisbeeren schwarz", plu: "30868" }, { name: "Johannisbeeren lose", plu: "30642" },
-        { name: "Kaki (Persimon)", plu: "30825" }, { name: "Kartoffeln festkochend", plu: "30511" }, { name: "Kartoffeln süß Bio", plu: "30710" },
-        { name: "Kerbel", plu: "30959" }, { name: "Kirschen", plu: "30871" }, { name: "Kirschen süß", plu: "30650" },
-        { name: "Kirschen süß Premium", plu: "30204" }, { name: "Knoblauch", plu: "30926" }, { name: "Knoblauch frisch", plu: "30541" },
-        { name: "Kokosnuss", plu: "30828" }, { name: "Kopfsalat", plu: "30983" }, { name: "Koriander", plu: "30935" },
-        { name: "Kräuterseitlinge", plu: "30525" }, { name: "Kumquats", plu: "30637" }, { name: "Kurkuma", plu: "30112" },
-        { name: "Limetten", plu: "30808" }, { name: "Limequats", plu: "30207" }, { name: "Litschis", plu: "30656" },
-        { name: "Lollo Bionda", plu: "30985" }, { name: "Lollo Rosso", plu: "30986" }, { name: "Lorbeer", plu: "30954" },
-        { name: "Löwenzahn", plu: "30594" }, { name: "Macadamia", plu: "30906" }, { name: "Majoran", plu: "30958" },
-        { name: "Mandarinen", plu: "30816" }, { name: "Mandeln", plu: "30909" }, { name: "Mangold", plu: "30553" },
-        { name: "Mango", plu: "30805" }, { name: "Mango Bio", plu: "30701" }, { name: "Mangostan", plu: "30648" },
-        { name: "Maronen (Esskastanien)", plu: "30902" }, { name: "Maronen", plu: "30661" }, { name: "Meerrettich", plu: "30552" },
-        { name: "Minneolas", plu: "30657" }, { name: "Minze", plu: "30942" }, { name: "Mirabellen", plu: "30877" },
-        { name: "Möhren", plu: "30551" }, { name: "Möhren Bio", plu: "30778" }, { name: "Muskatkürbis", plu: "30544" },
-        { name: "Nektarcot", plu: "30658" }, { name: "Nektarinen", plu: "30874" }, { name: "Nektarinen Bio", plu: "30705" },
-        { name: "Netzmelone", plu: "30844" }, { name: "Oregano", plu: "30951" }, { name: "Orangen", plu: "30812" },
-        { name: "Papaya", plu: "30822" }, { name: "Papaya Bio", plu: "30706" }, { name: "Paprika gelb", plu: "30561" },
-        { name: "Paprika gelb unbehandelt", plu: "30533" }, { name: "Paprika grün", plu: "30563" }, { name: "Paprika grün unbehandelt", plu: "30534" },
-        { name: "Paprika Mini Mix Spitz", plu: "30529" }, { name: "Paprika orange", plu: "30564" }, { name: "Paprika orange unbehandelt", plu: "30532" },
-        { name: "Paprika rot", plu: "30562" }, { name: "Paprika rot unbehandelt", plu: "30531" }, { name: "Paranüsse", plu: "30910" },
-        { name: "Pastinaken", plu: "30548" }, { name: "Passionsfrucht", plu: "30823" }, { name: "Peperoni grün", plu: "30565" },
-        { name: "Peperoni rot", plu: "30566" }, { name: "Pekannüsse", plu: "30905" }, { name: "Petersilie", plu: "30932" },
-        { name: "Pfifferlinge", plu: "30567" }, { name: "Pfirsiche", plu: "30875" }, { name: "Pfirsich Bio", plu: "30704" },
-        { name: "Pfirsich gelb", plu: "30673" }, { name: "Pfirsich gelb Premium", plu: "30679" }, { name: "Pfirsich weiß", plu: "30672" },
-        { name: "Pfirsich wild", plu: "30680" }, { name: "Physalis", plu: "30696" }, { name: "Pistazien", plu: "30907" },
-        { name: "Pistazien lose", plu: "30206" }, { name: "Pomelo", plu: "30819" }, { name: "Porree", plu: "30554" },
-        { name: "Portulak", plu: "30994" }, { name: "Postelein", plu: "30999" }, { name: "Radicchio", plu: "30570" },
-        { name: "Rambutan", plu: "30676" }, { name: "Rhabarber", plu: "30675" }, { name: "Rispentomaten", plu: "30524" },
-        { name: "Romanasalat", plu: "30987" }, { name: "Rosinen", plu: "30915" }, { name: "Rosmarin", plu: "30947" },
-        { name: "Rote Bete", plu: "30572" }, { name: "Rote Bete unbehandelt", plu: "30571" }, { name: "Rote Zwiebeln", plu: "30597" },
-        { name: "Rotkohl", plu: "30574" }, { name: "Rotkohl früh", plu: "30105" }, { name: "Rucola", plu: "30970" },
-        { name: "Salbei", plu: "30943" }, { name: "Schalotten", plu: "30927" }, { name: "Sellerie", plu: "30580" },
-        { name: "Shiitake", plu: "30109" }, { name: "Schnittlauch", plu: "30933" }, { name: "Schmorgurken", plu: "30549" },
-        { name: "Spargel weiß/violett", plu: "30583" }, { name: "Spargel violett 20–30 mm", plu: "30569" }, { name: "Spargel weiß unbehandelt 16–26 mm", plu: "30114" },
-        { name: "Spinat (Babyspinat)", plu: "30972" }, { name: "Spitzkohl", plu: "30586" }, { name: "Spitzkohl Bio", plu: "30735" },
-        { name: "Steckrübe", plu: "30581" }, { name: "Steinpilze", plu: "30108" }, { name: "Stachelbeeren", plu: "30869" },
-        { name: "Thymian", plu: "30949" }, { name: "Tomaten", plu: "30589" }, { name: "Tomaten Cherry Mini Premium", plu: "30592" },
-        { name: "Tomaten Cocktail Rispen", plu: "30588" }, { name: "Tomaten Cocktail Rispen DT", plu: "30585" }, { name: "Tomaten Fleisch", plu: "30353" },
-        { name: "Tomaten Fleisch Premium", plu: "30113" }, { name: "Tomaten Pflaumen-Strauch", plu: "30576" }, { name: "Tomaten Strauch", plu: "30578" },
-        { name: "Topinambur", plu: "30577" }, { name: "Trauben grün", plu: "30882" }, { name: "Trauben rot", plu: "30883" },
-        { name: "Trauben schwarz", plu: "30886" }, { name: "Trauben kernlos grün", plu: "30887" }, { name: "Trauben kernlos rot", plu: "30888" },
-        { name: "Trauben kernlos schwarz", plu: "30889" }, { name: "Trockenfeigen", plu: "30913" }, { name: "Trockenobst lose", plu: "30646" },
-        { name: "Walnüsse", plu: "30900" }, { name: "Walnüsse extra groß", plu: "30692" }, { name: "Wassermelone", plu: "30847" },
-        { name: "Wassermelone gelb", plu: "30649" }, { name: "Wassermelone gelb geschnitten", plu: "30614" }, { name: "Wassermelone rot geschnitten", plu: "30618" },
-        { name: "Wassermelone rot kernarm", plu: "30653" }, { name: "Wassermelone rot Premium", plu: "30654" }, { name: "Weißkohl", plu: "30590" },
-        { name: "Weißkohl früh", plu: "30508" }, { name: "Weißkohl unbehandelt", plu: "30598" }, { name: "Weißkohl Urtyp", plu: "30542" },
-        { name: "Wirsing", plu: "30591" }, { name: "Zitronen", plu: "30809" }, { name: "Zitronengras", plu: "30106" },
-        { name: "Zitronenmelisse", plu: "30961" }, { name: "Zucchini grün", plu: "30596" }, { name: "Zwiebeln", plu: "30595" },
-        { name: "Zwetschgen", plu: "30695" }
+    // القائمة الأساسية الثابتة للمنتجات
+    const defaultProducts = [
+        { name: "Ananas", plu: "30800", emoji: "🍍" }, { name: "Apfel 3 kg Karton", plu: "30601", emoji: "🍎" }, { name: "Apfel 5 kg Karton", plu: "30116", emoji: "🍎" },
+        { name: "Äpfel", plu: "30894", emoji: "🍏" }, { name: "Äpfel Bio", plu: "30751", emoji: "🌿" }, { name: "Äpfel gelegt", plu: "30603", emoji: "🍏" },
+        { name: "Äpfel Premium (Pink Lady)", plu: "30600", emoji: "🍎" }, { name: "Äpfel Übersee", plu: "30203", emoji: "🍏" }, { name: "Aprikosen", plu: "30621", emoji: "🍑" },
+        { name: "Aprikosen Bio", plu: "30707", emoji: "🌿" }, { name: "Aprikosen Premium", plu: "30622", emoji: "🍑" }, { name: "Auberginen", plu: "30500", emoji: "🍆" },
+        { name: "Auberginen Graffiti", plu: "30547", emoji: "🍆" }, { name: "Avocado Hass", plu: "30801", emoji: "🥑" }, { name: "Avocado Bio", plu: "30773", emoji: "🌿" },
+        { name: "Bananen", plu: "30625", emoji: "🍌" }, { name: "Bananen Chiquita", plu: "30620", emoji: "🍌" }, { name: "Bananen Bio", plu: "30750", emoji: "🌿" },
+        { name: "Bananen rot", plu: "30634", emoji: "🍌" }, { name: "Bananen EDK WWF", plu: "30208", emoji: "🍌" }, { name: "Basilikum", plu: "30931", emoji: "🌱" },
+        { name: "Birnen", plu: "30893", emoji: "🍐" }, { name: "Birne Abate Fetel", plu: "30615", emoji: "🍐" }, { name: "Birne Abate Fetel Premium", plu: "30627", emoji: "🍐" },
+        { name: "Birne Abate Fetel Bio", plu: "30726", emoji: "🌿" }, { name: "Birne Alexander Lucas", plu: "30626", emoji: "🍐" }, { name: "Birne Carmen", plu: "30606", emoji: "🍐" },
+        { name: "Birne Forelle", plu: "30610", emoji: "🍐" }, { name: "Birne Flamingo", plu: "30609", emoji: "🍐" }, { name: "Birne Nashi", plu: "30663", emoji: "🍐" },
+        { name: "Birne Packham's Triumph", plu: "30765", emoji: "🍐" }, { name: "Birne Rosemarie", plu: "30616", emoji: "🍐" }, { name: "Birne Santa Maria", plu: "30619", emoji: "🍐" },
+        { name: "Birne Tongern", plu: "30628", emoji: "🍐" }, { name: "Birne Köstliche von Charneux", plu: "30200", emoji: "🍐" }, { name: "Blutorangen", plu: "30818", emoji: "🍊" },
+        { name: "Bohnen Bobby", plu: "30506", emoji: "🫛" }, { name: "Bohnen Busch", plu: "30510", emoji: "🫛" }, { name: "Bohnen Busch gelb", plu: "30102", emoji: "🫛" },
+        { name: "Bohnen Stange", plu: "30579", emoji: "🫛" }, { name: "Brokkoli", plu: "30513", emoji: "🥦" }, { name: "Brombeeren", plu: "30862", emoji: "🫐" },
+        { name: "Brombeeren lose", plu: "30645", emoji: "🫐" }, { name: "Cantaloupe", plu: "30845", emoji: "🍈" }, { name: "Cashewkerne", plu: "30908", emoji: "🥜" },
+        { name: "Champignon weiß", plu: "30521", emoji: "🍄" }, { name: "Champignon Riesen", plu: "30520", emoji: "🍄" }, { name: "Champignon Portobello", plu: "30107", emoji: "🍄" },
+        { name: "Cherry Tomaten Rispen Premium", plu: "30526", emoji: "🍅" }, { name: "Chicorée", plu: "30523", emoji: "🥬" }, { name: "Chinakohl", plu: "30522", emoji: "🥬" },
+        { name: "Chinakohl Bio", plu: "30760", emoji: "🌿" }, { name: "Chili grün", plu: "30924", emoji: "🌶️" }, { name: "Chili rot", plu: "30923", emoji: "🌶️" },
+        { name: "Clementinen", plu: "30814", emoji: "🍊" }, { name: "Clementinen lose", plu: "30652", emoji: "🍊" }, { name: "Cocktailtomaten", plu: "30588", emoji: "🍅" },
+        { name: "Cocktailtomaten Rispen DT", plu: "30585", emoji: "🍅" }, { name: "Coeur de Boeuf Tomaten", plu: "30539", emoji: "🍅" }, { name: "Coeur de Boeuf Premium", plu: "30505", emoji: "🍅" },
+        { name: "Cranberries", plu: "30898", emoji: "🍒" }, { name: "Curryblätter", plu: "30963", emoji: "🌿" }, { name: "Datteln", plu: "30912", emoji: "🌴" },
+        { name: "Dill", plu: "30934", emoji: "🌿" }, { name: "Eichblattsalat", plu: "30984", emoji: "🥬" }, { name: "Endiviensalat", plu: "30989", emoji: "🥬" },
+        { name: "Eissalat", plu: "30981", emoji: "🥬" }, 
+        { name: "Erdbeeren", plu: "30852", emoji: "🍓" }, { name: "Erdbeeren Reg. Wiegeschale", plu: "30640", emoji: "🍓" }, { name: "Erdbeeren (7192)", plu: "7192", emoji: "🍓" },
+        { name: "Erdnüsse", plu: "30904", emoji: "🥜" }, { name: "Erdnüsse Jumbo", plu: "30636", emoji: "🥜" }, { name: "Erbsen", plu: "30599", emoji: "🫛" },
+        { name: "Estragon", plu: "30960", emoji: "🌿" }, { name: "Feldsalat", plu: "30507", emoji: "🥬" }, { name: "Feigen", plu: "30827", emoji: "🍇" },
+        { name: "Fenchel", plu: "30538", emoji: "🧅" }, { name: "Friséesalat", plu: "30988", emoji: "🥬" }, { name: "Frische Kräuter", plu: "30929", emoji: "🌱" },
+        { name: "Galia Melone", plu: "30833", emoji: "🍈" }, { name: "Galia Melone Bio", plu: "30711", emoji: "🌿" }, { name: "Granatapfel", plu: "30821", emoji: "🍎" },
+        { name: "Granatapfel Bio", plu: "30712", emoji: "🌿" }, { name: "Grapefruit", plu: "30817", emoji: "🍊" }, { name: "Blutgrapefruit Bio (Stück)", plu: "30709", emoji: "🌿" },
+        { name: "Grüne Paprika", plu: "30563", emoji: "🫑" }, { name: "Grüne Peperoni", plu: "30565", emoji: "🌶️" }, { name: "Grünkohl (Stängelkohl)", plu: "30587", emoji: "🥬" },
+        { name: "Gurke (Salatgurke)", plu: "30543", emoji: "🥒" }, { name: "Bio Salatgurke", plu: "30743", emoji: "🌿" }, { name: "Haselnüsse", plu: "30901", emoji: "🥜" },
+        { name: "Haselnüsse lose", plu: "30643", emoji: "🥜" }, { name: "Heidelbeeren", plu: "30861", emoji: "🫐" }, { name: "Heidelbeeren lose", plu: "30693", emoji: "🫐" },
+        { name: "Himbeeren", plu: "30855", emoji: "🍓" }, { name: "Himbeeren lose", plu: "30641", emoji: "🍓" }, { name: "Honigmelone", plu: "30834", emoji: "🍈" },
+        { name: "Hokkaido Kürbis", plu: "30727", emoji: "🎃" }, { name: "Ingwer", plu: "30504", emoji: "🫚" }, { name: "Ingwer Bio", plu: "30766", emoji: "🌿" },
+        { name: "Johannisbeeren rot", plu: "30866", emoji: "🍒" }, { name: "Johannisbeeren schwarz", plu: "30868", emoji: "🍒" }, { name: "Johannisbeeren lose", plu: "30642", emoji: "🍒" },
+        { name: "Kaki (Persimon)", plu: "30825", emoji: "🍊" }, { name: "Kartoffeln festkochend", plu: "30511", emoji: "🥔" }, { name: "Kartoffeln süß Bio", plu: "30710", emoji: "🌿" },
+        { name: "Kerbel", plu: "30959", emoji: "🌿" }, { name: "Kirschen", plu: "30871", emoji: "🍒" }, { name: "Kirschen süß", plu: "30650", emoji: "🍒" },
+        { name: "Kirschen süß Premium", plu: "30204", emoji: "🍒" }, { name: "Knoblauch", plu: "30926", emoji: "🧄" }, { name: "Knoblauch frisch", plu: "30541", emoji: "🧄" },
+        { name: "Kokosnuss", plu: "30828", emoji: "🥥" }, { name: "Kopfsalat", plu: "30983", emoji: "🥬" }, { name: "Koriander", plu: "30935", emoji: "🌿" },
+        { name: "Kräuterseitlinge", plu: "30525", emoji: "🍄" }, { name: "Kumquats", plu: "30637", emoji: "🍊" }, { name: "Kurkuma", plu: "30112", emoji: "🫚" },
+        { name: "Limetten", plu: "30808", emoji: "🍋" }, { name: "Limequats", plu: "30207", emoji: "🍋" }, { name: "Litschis", plu: "30656", emoji: "🍒" },
+        { name: "Lollo Bionda", plu: "30985", emoji: "🥬" }, { name: "Lollo Rosso", plu: "30986", emoji: "🥬" }, { name: "Lorbeer", plu: "30954", emoji: "🌿" },
+        { name: "Löwenzahn", plu: "30594", emoji: "🌿" }, { name: "Macadamia", plu: "30906", emoji: "🥜" }, { name: "Majoran", plu: "30958", emoji: "🌿" },
+        { name: "Mandarinen", plu: "30816", emoji: "🍊" }, { name: "Mandeln", plu: "30909", emoji: "🥜" }, { name: "Mangold", plu: "30553", emoji: "🥬" },
+        { name: "Mango", plu: "30805", emoji: "🥭" }, { name: "Mango Bio", plu: "30701", emoji: "🌿" }, { name: "Mangostan", plu: "30648", emoji: "🥭" },
+        { name: "Maronen (Esskastanien)", plu: "30902", emoji: "🌰" }, { name: "Maronen", plu: "30661", emoji: "🌰" }, { name: "Meerrettich", plu: "30552", emoji: "🥕" },
+        { name: "Minneolas", plu: "30657", emoji: "🍊" }, { name: "Minze", plu: "30942", emoji: "🌿" }, { name: "Mirabellen", plu: "30877", emoji: "🍑" },
+        { name: "Möhren", plu: "30551", emoji: "🥕" }, { name: "Möhren Bio", plu: "30778", emoji: "🌿" }, { name: "Muskatkürbis", plu: "30544", emoji: "🎃" },
+        { name: "Nektarcot", plu: "30658", emoji: "🍑" }, { name: "Nektarinen", plu: "30874", emoji: "🍑" }, { name: "Nektarinen Bio", plu: "30704", emoji: "🌿" },
+        { name: "Netzmelone", plu: "30844", emoji: "🍈" }, { name: "Oregano", plu: "30951", emoji: "🌿" }, { name: "Orangen", plu: "30812", emoji: "🍊" },
+        { name: "Papaya", plu: "30822", emoji: "🥭" }, { name: "Papaya Bio", plu: "30706", emoji: "🌿" }, { name: "Paprika gelb", plu: "30561", emoji: "👝" },
+        { name: "Paprika gelb unbehandelt", plu: "30533", emoji: "👝" }, { name: "Paprika grün", plu: "30563", emoji: "🫑" }, { name: "Paprika grün unbehandelt", plu: "30534", emoji: "🫑" },
+        { name: "Paprika Mini Mix Spitz", plu: "30529", emoji: "🫑" }, { name: "Paprika orange", plu: "30564", emoji: "🫑" }, { name: "Paprika orange unbehandelt", plu: "30532", emoji: "🫑" },
+        { name: "Paprika rot", plu: "30562", emoji: "🫑" }, { name: "Paprika rot unbehandelt", plu: "30531", emoji: "🫑" }, { name: "Paranüsse", plu: "30910", emoji: "🥜" },
+        { name: "Pastinaken", plu: "30548", emoji: "🥕" }, { name: "Passionsfrucht", plu: "30823", emoji: "🍇" }, { name: "Peperoni grün", plu: "30565", emoji: "🌶️" },
+        { name: "Peperoni rot", plu: "30566", emoji: "🌶️" }, { name: "Pekannüsse", plu: "30905", emoji: "🥜" }, { name: "Petersilie", plu: "30932", emoji: "🌿" },
+        { name: "Pfifferlinge", plu: "30567", emoji: "🍄" }, { name: "Pfirsiche", plu: "30875", emoji: "🍑" }, { name: "Pfirsich Bio", plu: "30704", emoji: "🌿" },
+        { name: "Pfirsich gelb", plu: "30673", emoji: "🍑" }, { name: "Pfirsich gelb Premium", plu: "30679", emoji: "🍑" }, { name: "Pfirsich weiß", plu: "30672", emoji: "🍑" },
+        { name: "Pfirsich wild", plu: "30680", emoji: "🍑" }, { name: "Physalis", plu: "30696", emoji: "🍒" }, { name: "Pistazien", plu: "30907", emoji: "🥜" },
+        { name: "Pistazien lose", plu: "30206", emoji: "🥜" }, { name: "Pomelo", plu: "30819", emoji: "🍊" }, { name: "Porree", plu: "30554", emoji: "🧅" },
+        { name: "Portulak", plu: "30994", emoji: "🥬" }, { name: "Postelein", plu: "30999", emoji: "🥬" }, { name: "Radicchio", plu: "30570", emoji: "🥬" },
+        { name: "Rambutan", plu: "30676", emoji: "🍇" }, { name: "Rhabarber", plu: "30675", emoji: "🌿" }, { name: "Rispentomaten", plu: "30524", emoji: "🍅" },
+        { name: "Romanasalat", plu: "30987", emoji: "🥬" }, { name: "Rosinen", plu: "30915", emoji: "🍇" }, { name: "Rosmarin", plu: "30947", emoji: "🌿" },
+        { name: "Rote Bete", plu: "30572", emoji: "🧅" }, { name: "Rote Bete unbehandelt", plu: "30571", emoji: "🧅" }, { name: "Rote Zwiebeln", plu: "30597", emoji: "🧅" },
+        { name: "Rotkohl", plu: "30574", emoji: "🥬" }, { name: "Rotkohl früh", plu: "30105", emoji: "🥬" }, { name: "Rucola", plu: "30970", emoji: "🥬" },
+        { name: "Salbei", plu: "30943", emoji: "🌿" }, { name: "Schalotten", plu: "30927", emoji: "🧅" }, { name: "Sellerie", plu: "30580", emoji: "🥬" },
+        { name: "Shiitake", plu: "30109", emoji: "🍄" }, { name: "Schnittlauch", plu: "30933", emoji: "🌿" }, { name: "Schmorgurken", plu: "30549", emoji: "🥒" },
+        { name: "Spargel weiß/violett", plu: "30583", emoji: "🌿" }, { name: "Spargel violett 20–30 mm", plu: "30569", emoji: "🌿" }, { name: "Spargel weiß unbehandelt 16–26 mm", plu: "30114", emoji: "🌿" },
+        { name: "Spinat (Babyspinat)", plu: "30972", emoji: "🥬" }, { name: "Spitzkohl", plu: "30586", emoji: "🥬" }, { name: "Spitzkohl Bio", plu: "30735", emoji: "🌿" },
+        { name: "Steckrübe", plu: "30581", emoji: "🥕" }, { name: "Steinpilze", plu: "30108", emoji: "🍄" }, { name: "Stachelbeeren", plu: "30869", emoji: "🍒" },
+        { name: "Thymian", plu: "30949", emoji: "🌿" }, { name: "Tomaten", plu: "30589", emoji: "🍅" }, { name: "Tomaten Cherry Mini Premium", plu: "30592", emoji: "🍅" },
+        { name: "Tomaten Cocktail Rispen", plu: "30588", emoji: "🍅" }, { name: "Tomaten Cocktail Rispen DT", plu: "30585", emoji: "🍅" }, { name: "Tomaten Fleisch", plu: "30353", emoji: "🍅" },
+        { name: "Tomaten Fleisch Premium", plu: "30113", emoji: "🍅" }, { name: "Tomaten Pflaumen-Strauch", plu: "30576", emoji: "🍅" }, { name: "Tomaten Strauch", plu: "30578", emoji: "🍅" },
+        { name: "Topinambur", plu: "30577", emoji: "🥔" }, { name: "Trauben grün", plu: "30882", emoji: "🍇" }, { name: "Trauben rot", plu: "30883", emoji: "🍇" },
+        { name: "Trauben schwarz", plu: "30886", emoji: "🍇" }, { name: "Trauben kernlos grün", plu: "30887", emoji: "🍇" }, { name: "Trauben kernlos rot", plu: "30888", emoji: "🍇" },
+        { name: "Trauben kernlos schwarz", plu: "30889", emoji: "🍇" }, { name: "Trockenfeigen", plu: "30913", emoji: "🍇" }, { name: "Trockenobst lose", plu: "30646", emoji: "🍇" },
+        { name: "Walnüsse", plu: "30900", emoji: "🌰" }, { name: "Walnüsse extra groß", plu: "30692", emoji: "🌰" }, { name: "Wassermelone", plu: "30847", emoji: "🍉" },
+        { name: "Wassermelone gelb", plu: "30649", emoji: "🍉" }, { name: "Wassermelone gelb geschnitten", plu: "30614", emoji: "🍉" }, { name: "Wassermelone rot geschnitten", plu: "30618", emoji: "🍉" },
+        { name: "Wassermelone rot kernarm", plu: "30653", emoji: "🍉" }, { name: "Wassermelone rot Premium", plu: "30654", emoji: "🍉" }, { name: "Weißkohl", plu: "30590", emoji: "🥬" },
+        { name: "Weißkohl früh", plu: "30508", emoji: "🥬" }, { name: "Weißkohl unbehandelt", plu: "30598", emoji: "🥬" }, { name: "Weißkohl Urtyp", plu: "30542", emoji: "🥬" },
+        { name: "Wirsing", plu: "30591", emoji: "🥬" }, { name: "Zitronen", plu: "30809", emoji: "🍋" }, { name: "Zitronengras", plu: "30106", emoji: "🌿" },
+        { name: "Zitronenmelisse", plu: "30961", emoji: "🌿" }, { name: "Zucchini grün", plu: "30596", emoji: "🥒" }, { name: "Zwiebeln", plu: "30595", emoji: "🧅" },
+        { name: "Zwetschgen", plu: "30695", emoji: "🍇" }
     ];
-
-    rawProducts.sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
     const tableData = document.getElementById('tableData');
     const mainSearch = document.getElementById('mainSearch');
@@ -215,19 +255,64 @@
     const toastMessage = document.getElementById('toastMessage');
     const voiceBtn = document.getElementById('voiceBtn');
     const voiceStatus = document.getElementById('voiceStatus');
+    const favSection = document.getElementById('favSection');
+    const favGrid = document.getElementById('favGrid');
+    
+    // عناصر لوحة التحكم بالإدارة
+    const adminToggleBtn = document.getElementById('adminToggleBtn');
+    const adminContent = document.getElementById('adminContent');
+    const addProdBtn = document.getElementById('addProdBtn');
+    const newProdName = document.getElementById('newProdName');
+    const newProdPlu = document.getElementById('newProdPlu');
+    const newProdEmoji = document.getElementById('newProdEmoji');
 
     let currentSelectedLetter = 'ALL';
+    let favorites = JSON.parse(localStorage.getItem('plu_favorites')) || [];
+    
+    // تحميل المنتجات المضافة يدوياً من الذاكرة إن وجدت دمجها مع الأساسية
+    let customProducts = JSON.parse(localStorage.getItem('plu_custom_products')) || [];
+    let rawProducts = [...defaultProducts, ...customProducts];
 
-    // توليد شريط الحروف تلقائياً
-    const letters = ['ALL', ...new Set(rawProducts.map(p => p.name.charAt(0).toUpperCase()))].sort((a,b) => a.localeCompare(b, 'de'));
-    alphabetBar.innerHTML = '';
-    letters.forEach(let => {
-        const btn = document.createElement('button');
-        btn.className = `letter-btn ${let === 'ALL' ? 'active' : ''}`;
-        btn.textContent = let === 'ALL' ? 'ALLE' : let;
-        btn.setAttribute('data-letter', let);
-        alphabetBar.appendChild(btn);
-    });
+    function sortAndBuildAlphabet() {
+        rawProducts.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+        const letters = ['ALL', ...new Set(rawProducts.map(p => p.name.charAt(0).toUpperCase()))].sort((a,b) => a.localeCompare(b, 'de'));
+        alphabetBar.innerHTML = '';
+        letters.forEach(let => {
+            const btn = document.createElement('button');
+            btn.className = `letter-btn ${let === currentSelectedLetter ? 'active' : ''}`;
+            btn.textContent = let === 'ALL' ? 'ALLE' : let;
+            btn.setAttribute('data-letter', let);
+            alphabetBar.appendChild(btn);
+        });
+    }
+
+    function toggleFavorite(productName) {
+        if (favorites.includes(productName)) {
+            favorites = favorites.filter(f => f !== productName);
+        } else {
+            favorites.push(productName);
+        }
+        localStorage.setItem('plu_favorites', JSON.stringify(favorites));
+        renderFavoritesGrid();
+        filterProducts();
+    }
+
+    function renderFavoritesGrid() {
+        favGrid.innerHTML = '';
+        const favItems = rawProducts.filter(p => favorites.includes(p.name));
+        if (favItems.length === 0) {
+            favSection.style.display = 'none';
+            return;
+        }
+        favSection.style.display = 'block';
+        favItems.forEach(item => {
+            const chip = document.createElement('div');
+            chip.className = 'fav-chip';
+            chip.innerHTML = `<span>${item.emoji || '📦'} ${item.name}</span> <span class="chip-plu">${item.plu}</span>`;
+            chip.addEventListener('click', () => copyPluToClipboard(item.plu));
+            favGrid.appendChild(chip);
+        });
+    }
 
     function updateInterface(items) {
         tableData.innerHTML = '';
@@ -243,11 +328,17 @@
 
         items.forEach(item => {
             const row = document.createElement('tr');
+            
+            const favCell = document.createElement('td');
+            const isFav = favorites.includes(item.name);
+            favCell.innerHTML = `<button class="star-btn ${isFav ? 'active' : ''}">★</button>`;
+            favCell.querySelector('button').addEventListener('click', () => toggleFavorite(item.name));
+            
             const nameCell = document.createElement('td');
-            nameCell.textContent = item.name;
+            nameCell.innerHTML = `<div class="prod-name-container"><span class="prod-emoji">${item.emoji || '📦'}</span><span>${item.name}</span></div>`;
+            
             const pluCell = document.createElement('td');
             pluCell.style.textAlign = 'center';
-            
             if (item.plu) {
                 const badge = document.createElement('span');
                 badge.className = 'plu-badge';
@@ -260,6 +351,8 @@
                 fallback.textContent = 'fehlt';
                 pluCell.appendChild(fallback);
             }
+            
+            row.appendChild(favCell);
             row.appendChild(nameCell);
             row.appendChild(pluCell);
             tableData.appendChild(row);
@@ -280,11 +373,55 @@
             const nameLower = product.name.toLowerCase();
             const words = nameLower.split(' ');
             let matchesLetter = currentSelectedLetter === 'ALL' || product.name.toUpperCase().startsWith(currentSelectedLetter);
-            let matchesQuery = query === '' || nameLower.startsWith(query) || words.some(w => w.startsWith(query)) || product.plu.includes(query);
+            let matchesQuery = query === '' || nameLower.includes(query) || product.plu.includes(query) || words.some(w => w.startsWith(query));
             return matchesLetter && matchesQuery;
         });
         updateInterface(filtered);
     }
+
+    // منطق فتح لوحة التحكم بالرمز السري 2026
+    adminToggleBtn.addEventListener('click', () => {
+        if (adminContent.style.display === 'flex') {
+            adminContent.style.display = 'none';
+            adminToggleBtn.textContent = "🔒 Administrator-Bereich (🔒 لوحة المدير)";
+        } else {
+            const password = prompt("Bitte Admin-Passwort eingeben / يرجى إدخال رمز الأمان:");
+            if (password === "2026") {
+                adminContent.style.display = 'flex';
+                adminToggleBtn.textContent = "🔓 Administrator-Bereich geöffnet (🔓 اللوحة مفتوحة)";
+            } else if (password !== null) {
+                alert("Falsches Passwort! / الرمز السري غير صحيح!");
+            }
+        }
+    });
+
+    // إضافة منتج جديد
+    addProdBtn.addEventListener('click', () => {
+        const name = newProdName.value.trim();
+        const plu = newProdPlu.value.trim();
+        const emoji = newProdEmoji.value.trim() || "📦";
+
+        if (!name || !plu) {
+            alert("Bitte Name und PLU ausfüllen! / يرجى ملء الاسم والكود أولاً!");
+            return;
+        }
+
+        const newProduct = { name, plu, emoji };
+        customProducts.push(newProduct);
+        localStorage.setItem('plu_custom_products', JSON.stringify(customProducts));
+        
+        rawProducts.push(newProduct);
+        
+        // إعادة تهيئة الواجهة
+        sortAndBuildAlphabet();
+        filterProducts();
+
+        // تنظيف الخانات
+        newProdName.value = '';
+        newProdPlu.value = '';
+        newProdEmoji.value = '';
+        alert(`"${name}" wurde erfolgreich hinzugefügt! / تم الإضافة بنجاح!`);
+    });
 
     mainSearch.addEventListener('input', filterProducts);
 
@@ -296,12 +433,11 @@
         filterProducts();
     });
 
-    // 🎙️ برمجة محرك البحث الصوتي الذكي (Web Speech API)
+    // محرك الصوت المساعد
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
     if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
-        recognition.lang = 'de-DE'; // تهيئة لغة البحث لتكون الألمانية
+        recognition.lang = 'de-DE'; 
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
@@ -318,10 +454,7 @@
             mainSearch.placeholder = "Ich höre zu... (z. B. Apfel)";
         };
 
-        recognition.onspeechend = () => {
-            recognition.stop();
-        };
-
+        recognition.onspeechend = () => recognition.stop();
         recognition.onend = () => {
             voiceBtn.classList.remove('listening');
             mainSearch.placeholder = "Produktname, PLU oder Sprache...";
@@ -329,37 +462,25 @@
 
         recognition.onresult = (event) => {
             let speechToText = event.results[0][0].transcript;
-            
-            // تنظيف النص وحذف النقطة إذا وجدت في نهاية الكلام المسموع
-            if(speechToText.endsWith('.')) {
-                speechToText = speechToText.slice(0, -1);
-            }
-            
+            if(speechToText.endsWith('.')) speechToText = speechToText.slice(0, -1);
             mainSearch.value = speechToText;
-            currentSelectedLetter = 'ALL'; // إعادة تصفية الحروف لعرض النتيجة بدقة
+            currentSelectedLetter = 'ALL';
             document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active'));
             document.querySelector('[data-letter="ALL"]').classList.add('active');
-            
             filterProducts();
         };
-
-        recognition.onerror = (event) => {
-            console.error("Audio-Fehler: ", event.error);
-            voiceBtn.classList.remove('listening');
-        };
-    } else {
-        // إخفاء الزر أو تعطيله إذا كان المتصفح قديم جداً ولا يدعم الصوت
-        voiceBtn.style.display = 'none';
-        voiceStatus.innerHTML = `Modus: <b>Offline OK</b> 🟢 (Audio nicht unterstützt)`;
     }
 
+    // تشغيل الصفحة لأول مرة
+    sortAndBuildAlphabet();
+    renderFavoritesGrid();
     updateInterface(rawProducts);
 
-    // كود الـ Offline cache المدمج 
+    // التشغيل الآمن أوفلاين بدون إنترنت
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register(
             URL.createObjectURL(new Blob([`
-                self.addEventListener('install', e => e.waitUntil(caches.open('v2').then(c => c.addAll([window.location.href]))));
+                self.addEventListener('install', e => e.waitUntil(caches.open('v6').then(c => c.addAll([window.location.href]))));
                 self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
             `], { type: 'application/javascript' }))
         );

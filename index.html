@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLU Quick-Find Pro v6</title>
+    <title>PLU Quick-Find Pro v6.1</title>
     <style>
         :root {
             --bg-main: #f4f6f9;
@@ -91,10 +91,10 @@
         .fallback-text { color: #ff6b6b; font-style: italic; font-size: 13px; }
 
         /* منطقة الإدارة المحمية بالباسورد */
-        .admin-panel { width: 100%; max-width: 700px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .admin-toggle-btn { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0 auto 10px auto; font-weight: bold; }
-        .admin-toggle-btn:hover { color: var(--primary); }
-        .admin-content { display: none; flex-direction: column; gap: 10px; border-top: 1px dashed var(--border); padding-top: 12px; }
+        .admin-panel { width: 100%; max-width: 700px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        .admin-toggle-btn { background: #34495e; color: white; border: none; font-size: 14px; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: background 0.2s; width: 100%; }
+        .admin-toggle-btn:hover { background: #2c3e50; }
+        .admin-content { display: none; flex-direction: column; gap: 10px; border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 10px; }
         .admin-form-group { display: flex; flex-wrap: wrap; gap: 8px; }
         .admin-input { flex: 1; min-width: 130px; padding: 10px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: 8px; font-size: 14px; outline: none; }
         .admin-input:focus { border-color: var(--primary); }
@@ -144,6 +144,7 @@
     </div>
 </div>
 
+<!-- لوحة التحكم المحمية بالرمز السري -->
 <div class="admin-panel">
     <button class="admin-toggle-btn" id="adminToggleBtn">🔒 Administrator-Bereich (🔒 لوحة المدير)</button>
     <div class="admin-content" id="adminContent">
@@ -159,7 +160,7 @@
 <div class="toast" id="toastMessage">Nummer kopiert! ✓</div>
 
 <script>
-    // القائمة الأساسية الثابتة للمنتجات
+    // القائمة الأساسية الثابتة للمنتجات (تم إصلاح خطأ السطور 142)
     const defaultProducts = [
         { name: "Ananas", plu: "30800", emoji: "🍍" }, { name: "Apfel 3 kg Karton", plu: "30601", emoji: "🍎" }, { name: "Apfel 5 kg Karton", plu: "30116", emoji: "🍎" },
         { name: "Äpfel", plu: "30894", emoji: "🍏" }, { name: "Äpfel Bio", plu: "30751", emoji: "🌿" }, { name: "Äpfel gelegt", plu: "30603", emoji: "🍏" },
@@ -258,7 +259,7 @@
     const favSection = document.getElementById('favSection');
     const favGrid = document.getElementById('favGrid');
     
-    // عناصر لوحة التحكم بالإدارة
+    // عناصر لوحة التحكم
     const adminToggleBtn = document.getElementById('adminToggleBtn');
     const adminContent = document.getElementById('adminContent');
     const addProdBtn = document.getElementById('addProdBtn');
@@ -268,8 +269,6 @@
 
     let currentSelectedLetter = 'ALL';
     let favorites = JSON.parse(localStorage.getItem('plu_favorites')) || [];
-    
-    // تحميل المنتجات المضافة يدوياً من الذاكرة إن وجدت دمجها مع الأساسية
     let customProducts = JSON.parse(localStorage.getItem('plu_custom_products')) || [];
     let rawProducts = [...defaultProducts, ...customProducts];
 
@@ -412,11 +411,9 @@
         
         rawProducts.push(newProduct);
         
-        // إعادة تهيئة الواجهة
         sortAndBuildAlphabet();
         filterProducts();
 
-        // تنظيف الخانات
         newProdName.value = '';
         newProdPlu.value = '';
         newProdEmoji.value = '';
@@ -433,7 +430,6 @@
         filterProducts();
     });
 
-    // محرك الصوت المساعد
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
@@ -471,20 +467,9 @@
         };
     }
 
-    // تشغيل الصفحة لأول مرة
     sortAndBuildAlphabet();
     renderFavoritesGrid();
     updateInterface(rawProducts);
-
-    // التشغيل الآمن أوفلاين بدون إنترنت
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register(
-            URL.createObjectURL(new Blob([`
-                self.addEventListener('install', e => e.waitUntil(caches.open('v6').then(c => c.addAll([window.location.href]))));
-                self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-            `], { type: 'application/javascript' }))
-        );
-    }
 </script>
 
 </body>

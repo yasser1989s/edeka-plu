@@ -1,0 +1,18 @@
+{
+  "name": "E PLUS PLU Finder",
+  "short_name": "E PLUS",
+  "description": "Professional PLU Quick-Find Application",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1e272e",
+  "theme_color": "#10ac84",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

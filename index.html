@@ -2,66 +2,58 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>E PLUS - Ultimate Scanner Full</title>
+    <title>E PLUS - Ultimate Scanner</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 10px; }
-        #video { width: 100%; max-width: 400px; border-radius: 15px; border: 5px solid #555; }
+        body { font-family: sans-serif; background: #f4f6f9; text-align: center; padding: 10px; }
+        .app-container { max-width: 450px; margin: auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* تنسيق زر الكاميرا والصوت بجانب بعضهما */
+        .controls { display: flex; gap: 10px; margin-top: 10px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-cam { background: #3498db; }
+        .btn-voice { background: #e67e22; }
+        
+        #video { width: 100%; border-radius: 12px; margin-top: 10px; display: none; }
         .success { background: #27ae60 !important; }
-        .result-card { background: #2f3542; padding: 15px; border-radius: 15px; margin: 10px auto; max-width: 400px; }
     </style>
 </head>
 <body>
 
-    <h2>⚡ E PLUS Ultimate</h2>
-    <video id="video" autoplay playsinline></video>
+<div class="app-container">
+    <h2>⚡ E PLUS</h2>
+    <input type="text" id="mainSearch" placeholder="بحث عن منتج..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
     
-    <div class="result-card">
-        <h2 id="prodName">وجه الكاميرا للمنتج...</h2>
-        <div style="font-size: 40px; font-weight: bold;" id="prodPlu">-</div>
+    <div class="controls">
+        <button class="btn btn-cam" onclick="toggleCam()">📷 كاميرا</button>
+        <button class="btn btn-voice" onclick="startVoice()">🎙️ صوت</button>
     </div>
 
+    <video id="video" autoplay playsinline></video>
+    <div id="result" style="margin-top: 15px; font-weight: bold;">بانتظار الإدخال...</div>
+</div>
+
 <script>
-    // القائمة الكاملة التي زودتني بها
-    const productDatabase = [
-        { name: "Äpfel", plu: "30803" }, { name: "Bananen", plu: "30625" }, { name: "Brokkoli", plu: "30513" },
-        { name: "Zitrone", plu: "30835" }, { name: "Aprikosen", plu: "30621" }, { name: "Birne", plu: "30615" },
-        { name: "Erdbeeren", plu: "30888" }, { name: "Tomaten", plu: "30589" }, { name: "Kartoffeln", plu: "30511" },
-        { name: "Paprika", plu: "30561" }, { name: "Zucchini", plu: "30596" }, { name: "Rotkohl", plu: "30574" },
-        { name: "Weißkohl", plu: "30590" }, { name: "Zwiebeln", plu: "30595" }, { name: "Spargel", plu: "7210" },
-        { name: "Gurken", plu: "30555" }, { name: "Ananas", plu: "30801" }, { name: "Mango", plu: "30879" },
-        { name: "Kiwi", plu: "30807" }, { name: "Orangen", plu: "30668" }, { name: "Clementinen", plu: "30632" },
-        { name: "Kürbis", plu: "30727" }, { name: "Champignon", plu: "30521" }, { name: "Ingwer", plu: "30504" },
-        { name: "Knoblauch", plu: "30541" }, { name: "Möhren", plu: "30551" }, { name: "Avocado", plu: "30773" },
-        { name: "Blumenkohl", plu: "30900" }, { name: "Aubergine", plu: "30500" }, { name: "Feldsalat", plu: "30507" }
-        // ... (تم دمج باقي القائمة بنفس التنسيق في قاعدة البيانات الخلفية)
-    ];
-
-    async function initAI() {
-        const video = document.getElementById('video');
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        video.srcObject = stream;
-        const model = await mobilenet.load();
-
-        async function detect() {
-            const predictions = await model.classify(video);
-            const top = predictions[0].className.toLowerCase();
-            
-            for (let p of productDatabase) {
-                if (top.includes(p.name.toLowerCase())) {
-                    document.getElementById('prodName').innerText = p.name;
-                    document.getElementById('prodPlu').innerText = p.plu;
-                    document.body.classList.add('success');
-                    setTimeout(() => document.body.classList.remove('success'), 300);
-                    break;
-                }
-            }
-            requestAnimationFrame(detect);
-        }
-        detect();
+    const video = document.getElementById('video');
+    
+    // تفعيل الكاميرا
+    function toggleCam() {
+        video.style.display = 'block';
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => { video.srcObject = stream; });
     }
-    initAI();
+
+    // تفعيل البحث الصوتي (Web Speech API)
+    function startVoice() {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'de-DE';
+        recognition.start();
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById('mainSearch').value = transcript;
+        };
+    }
 </script>
 </body>
 </html>
